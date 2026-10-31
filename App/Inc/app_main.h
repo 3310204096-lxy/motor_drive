@@ -31,8 +31,12 @@ extern "C" {
   */
 
 /* Exported functions prototypes ---------------------------------------------*/
+
+/**
+  * @brief  初始化应用外设并创建业务任务。
+  * @note   由 FreeRTOS 的 StartDefaultTask 调用，返回后该任务自行退出。
+  */
 void App_Init(void);
-void App_Loop(void);
 
 /**
   * @}
