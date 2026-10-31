@@ -38,11 +38,6 @@ extern TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN Private defines */
 
-/* TIM4 控制周期时基：72 MHz / (71+1) / (999+1) = 1 kHz */
-#define TIM4_PRESCALER          71U
-#define TIM4_PERIOD             999U
-#define TIM4_IRQ_PRIORITY       1U
-
 /* USER CODE END Private defines */
 
 void MX_TIM2_Init(void);
@@ -51,9 +46,6 @@ void MX_TIM3_Init(void);
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 /* USER CODE BEGIN Prototypes */
-
-extern TIM_HandleTypeDef htim4;
-void MX_TIM4_Init(void);
 
 /* USER CODE END Prototypes */
 

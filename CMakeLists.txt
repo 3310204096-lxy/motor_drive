@@ -45,13 +45,15 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 # Add sources to executable
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/encoder.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/Core/Src/as5600.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/Src/app_main.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/Src/as5600.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/Src/encoder.c
 )
 
 # Add include paths
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user defined include paths
+    ${CMAKE_CURRENT_SOURCE_DIR}/App/Inc
 )
 
 # Add project symbols (macros)
