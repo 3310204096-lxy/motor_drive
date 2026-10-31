@@ -1,0 +1,16 @@
+build
+mx.scratch
+!.settings
+
+# 本地工具与工作区数据
+.workbuddy/
+
+# 构建产物
+*.o
+*.d
+*.elf
+*.bin
+*.hex
+*.map
+*.su
+compile_commands.json
