@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V2 功能扩展方案</title>
+<style>
+:root{
+  --bg:#FAF7F2; --surface:#FFFFFF; --ink:#2B2723; --ink-soft:#6E6559;
+  --ink-light:#9A9086; --line:#E6DFD4; --line-soft:#F0EAE0;
+  --accent:#B5713F; --accent-soft:#F4E9DE;
+  --green:#4F6B5B; --green-soft:#E8EDE9;
+  --red:#A8503F; --red-soft:#F6E7E3;
+  --code-bg:#F5F1EA;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;font-size:15px;line-height:1.85;padding:0 24px 110px}
+.wrap{max-width:940px;margin:0 auto}
+header{padding:76px 0 46px;border-bottom:1px solid var(--line)}
+.kicker{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:20px}
+h1{font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-size:34px;line-height:1.35;font-weight:600;letter-spacing:-.5px;margin-bottom:14px}
+.sub{font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-size:16px;color:var(--ink-soft);line-height:1.75;max-width:680px}
+.meta{display:flex;flex-wrap:wrap;gap:26px;margin-top:30px;font-size:13px;color:var(--ink-light)}
+.meta b{color:var(--ink-soft);font-weight:500}
+
+section{padding:56px 0;border-bottom:1px solid var(--line-soft)}
+section:last-of-type{border-bottom:none}
+.sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:24px}
+.sec-num{font-family:Georgia,serif;font-size:13px;color:var(--accent);letter-spacing:.1em;font-weight:600}
+h2{font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-size:23px;font-weight:600;letter-spacing:-.2px}
+h3{font-size:15px;font-weight:600;margin:30px 0 10px}
+h3:first-child{margin-top:0}
+p{color:var(--ink-soft);margin-bottom:14px}
+p strong{color:var(--ink);font-weight:600}
+.lead{font-size:16.5px;color:var(--ink);line-height:1.8}
+
+table{width:100%;border-collapse:collapse;margin:10px 0 16px;font-size:13.5px}
+th{text-align:left;font-weight:600;font-size:12px;letter-spacing:.06em;color:var(--ink-light);text-transform:uppercase;padding:0 14px 9px 0;border-bottom:1px solid var(--line)}
+td{padding:10px 14px 10px 0;border-bottom:1px solid var(--line-soft);color:var(--ink-soft);vertical-align:top}
+td:first-child{color:var(--ink);font-weight:500}
+tr:last-child td{border-bottom:none}
+.mono{font-family:Consolas,"SF Mono","JetBrains Mono",monospace;font-size:12.5px;color:#8A5B36}
+.hi{color:var(--green);font-weight:600}
+
+pre{background:var(--code-bg);border:1px solid var(--line-soft);border-radius:4px;padding:18px 20px;overflow-x:auto;font-family:Consolas,"SF Mono","JetBrains Mono",monospace;font-size:12.5px;line-height:1.75;color:#3A342C;margin:12px 0 18px}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:22px 24px;margin-bottom:14px}
+.card h3{font-size:15px;margin-bottom:10px}
+.card p{font-size:14px;margin-bottom:8px}
+.card p:last-child{margin-bottom:0}
+
+.note{border-left:2px solid var(--accent);background:var(--accent-soft);padding:16px 20px;margin:18px 0;font-size:14px;color:#6B4E33;border-radius:0 3px 3px 0}
+.warn{border-left:2px solid var(--red);background:var(--red-soft);padding:16px 20px;margin:18px 0;font-size:14px;color:#7A3A2E;border-radius:0 3px 3px 0}
+.ok{border-left:2px solid var(--green);background:var(--green-soft);padding:16px 20px;margin:18px 0;font-size:14px;color:#3D5245;border-radius:0 3px 3px 0}
+.note b,.warn b,.ok b{font-weight:600}
+
+ul.plain{list-style:none;margin:10px 0 16px}
+ul.plain li{position:relative;padding-left:18px;margin-bottom:8px;color:var(--ink-soft);font-size:14px}
+ul.plain li::before{content:"";position:absolute;left:0;top:11px;width:5px;height:1px;background:var(--accent)}
+ul.plain li b{color:var(--ink);font-weight:600}
+
+footer{padding-top:44px;font-size:12.5px;color:var(--ink-light);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+@media (max-width:760px){body{padding:0 18px 70px;font-size:14.5px}h1{font-size:26px}header{padding:52px 0 34px}section{padding:44px 0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kicker">Design Proposal · V2</div>
+  <h1>电机 + 加热控制板<br>功能扩展方案</h1>
+  <p class="sub">
+    在现有 STM32F103C8T6 + DRV8871 板基础上，补齐老方案中的电压/电流采集与加热控制功能，
+    用于教学实验台。
+  </p>
+  <div class="meta">
+    <span><b>平台</b> STM32F103C8T6 · 72 MHz</span>
+    <span><b>驱动</b> DRV8871 + AOD4184</span>
+    <span><b>日期</b> 2026-11-05</span>
+  </div>
+</header>
+
+<section>
+  <div class="sec-head"><span class="sec-num">01</span><h2>需求对照</h2></div>
+
+  <p>老方案基于 STM32G431 + L298N 双 H 桥，本次保留功能目标、更换实现方案。</p>
+
+  <table>
+    <thead>
+      <tr><th style="width:26%">功能</th><th style="width:34%">老方案</th><th style="width:40%">新方案</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>电机驱动</td><td>L298N 一个 H 桥（压降 2V）</td><td><b>DRV8871</b>（压降 0.5V，效率高）</td></tr>
+      <tr><td>加热驱动</td><td>L298N 另一个 H 桥</td><td><b>AOD4184 + PWM</b>（电阻负载不需要 H 桥）</td></tr>
+      <tr><td>母线电压</td><td>差分放大（衰减 0.2）</td><td><b>33k/11k 分压 + ADC</b></td></tr>
+      <tr><td>电机电流</td><td>5mΩ + 运放（增益不足）</td><td><b>10mΩ + INA180A3</b>（增益 100）</td></tr>
+      <tr><td>加热电流</td><td>同上</td><td><b>10mΩ + INA180A3</b></td></tr>
+      <tr><td>编码器</td><td>2 路</td><td>1 路（TIM2，硬件计数）</td></tr>
+      <tr><td>温度检测</td><td>NTC 接口</td><td>本版不做（开环加热）</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    <b>本版范围：</b>一路电机（速度/位置闭环）+ 一路加热棒（PWM 功率控制）+ 3 路模拟量采集。
+    温度传感、双电机留待后续版本。
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">02</span><h2>系统框图</h2></div>
+
+<pre>                     ┌──────────────────────────────────┐
+   12V ──────────────┤  33k/11k 分压  ──→ PA2  母线电压  │
+                     │                                  │
+                     │  DRV8871 ── 电机 ── encoder ──→ PA0/PA1
+                     │     │                            │
+                     │   [10mΩ] ── INA180 ──→ PA3  电机电流
+                     │     │                            │
+                     │    GND                           │
+                     │                                  │
+                     │  AOD4184 ── 加热棒                │
+                     │     │                            │
+                     │   [10mΩ] ── INA180 ──→ PA5  加热电流
+                     │     │                            │
+                     └─────┼────────────────────────────┘
+                           │
+                          GND
+
+   控制信号：PA6/PA7 → 电机 PWM (TIM3 CH1/CH2)
+             PB0     → 加热 PWM (TIM3 CH3)</pre>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">03</span><h2>模块设计</h2></div>
+
+  <h3>3.1 电机驱动（沿用）</h3>
+  <p>DRV8871，峰值 3.6A，IN1/IN2 双 PWM 输入，支持正反转。限流电阻 <span class="mono">R3 = 30kΩ</span> 当前对应 0.82A。</p>
+
+  <div class="warn">
+    <b>限流需要调整。</b>若配 3W 电机（额定 0.8A / 堵转 2A），0.82A 正好卡在额定值，启动无力。
+    建议 <span class="mono">R3 改为 16kΩ</span>，限流 1.5A。
+  </div>
+
+  <h3>3.2 加热驱动（新增）</h3>
+
+<pre>12V ──[加热棒]──┬── Q2 漏极 (AOD4184)
+                │
+           Q2 源极 ──[10mΩ]── GND
+
+PB0 ──[Rg 100Ω]──┬── Q2 栅极
+                 │
+             [Rgs 10k]
+                 │
+                GND</pre>
+
+  <table>
+    <thead><tr><th style="width:22%">器件</th><th style="width:30%">参数</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>Q2</td><td>AOD4184 · TO-252</td><td>40V / 50A / Rds 12mΩ@3.3V，逻辑电平</td></tr>
+      <tr><td>Rg</td><td>100Ω 0805</td><td>栅极限流</td></tr>
+      <tr><td>Rgs</td><td>10kΩ 0805</td><td><b>下拉，防止上电误导通</b></td></tr>
+    </tbody>
+  </table>
+
+  <p><b>为什么不用 H 桥：</b>加热棒是纯电阻，不需要换向。单个低边开关就能 PWM 调功率，比 L298N 省一半器件、少 2V 压降。</p>
+
+  <h3>3.3 模拟量采集（3 路）</h3>
+
+  <p><b>① 母线电压</b></p>
+<pre>12V ──[33k]──┬── PA2 (ADC1_IN2)
+             │
+          [11k]
+             │
+            GND ──[100nF]── 同上节点</pre>
+
+  <p>分压比 1:4，12V → 3.0V。功耗 3.3mW，精度约 1.5%。</p>
+
+  <p><b>② 电机电流</b></p>
+<pre>DRV8871 GND(1,7,9) ──┬──[10mΩ]── GND
+                     └── INA180 IN+
+GND ───────────────────── INA180 IN−
+INA180 OUT ────────────── PA3 (ADC1_IN3)</pre>
+
+  <p><b>③ 加热电流</b></p>
+<pre>Q2 源极 ──┬──[10mΩ]── GND
+          └── INA180 IN+
+GND ────────── INA180 IN−
+INA180 OUT ─── PA5 (ADC1_IN5)</pre>
+
+  <table>
+    <thead><tr><th style="width:26%">参数</th><th style="width:30%">值</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>采样电阻</td><td>10mΩ ±1% 1W 1206</td><td>2A 时压降 20mV，功耗 40mW</td></tr>
+      <tr><td>放大器</td><td>INA180A3（增益 100）</td><td>2A → 2.0V 输出</td></tr>
+      <tr><td>量程</td><td>0 ~ 3.3A</td><td>超出则饱和，不会损坏</td></tr>
+      <tr><td>分辨率</td><td>≈ 0.8 mA</td><td>12 位 ADC</td></tr>
+    </tbody>
+  </table>
+
+  <div class="ok">
+    <b>采样点都在低边</b>（地侧），共模电压接近 0V，INA180 工作最稳定。
+    代价是功率地要经过采样电阻才能回到主地平面，PCB 布线需单独处理。
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">04</span><h2>引脚分配</h2></div>
+
+  <table>
+    <thead><tr><th style="width:14%">引脚</th><th style="width:26%">功能</th><th style="width:24%">外设</th><th>状态</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">PA0 / PA1</td><td>编码器 A/B</td><td>TIM2 Encoder</td><td>已有</td></tr>
+      <tr><td class="mono">PA2</td><td>母线电压</td><td>ADC1_IN2</td><td class="hi">新增</td></tr>
+      <tr><td class="mono">PA3</td><td>电机电流</td><td>ADC1_IN3</td><td class="hi">新增</td></tr>
+      <tr><td class="mono">PA5</td><td>加热电流</td><td>ADC1_IN5</td><td class="hi">新增</td></tr>
+      <tr><td class="mono">PA6 / PA7</td><td>电机 PWM</td><td>TIM3_CH1 / CH2</td><td>已有</td></tr>
+      <tr><td class="mono">PB0</td><td>加热 PWM</td><td>TIM3_CH3</td><td class="hi">新增</td></tr>
+      <tr><td class="mono">PA9 / PA10</td><td>串口</td><td>USART1</td><td>已有</td></tr>
+      <tr><td class="mono">PB6 / PB7</td><td>I2C</td><td>I2C1</td><td>已有</td></tr>
+      <tr><td class="mono">PA13 / PA14</td><td>SWD</td><td>SYS</td><td>已有</td></tr>
+    </tbody>
+  </table>
+
+  <p>PA2 / PA3 / PA5 / PB0 当前空闲，可直接使用，<b>不与其他功能冲突</b>。</p>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">05</span><h2>新增器件清单</h2></div>
+
+  <table>
+    <thead><tr><th style="width:10%">位号</th><th style="width:30%">器件</th><th style="width:20%">封装</th><th style="width:8%">数量</th><th>备注</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">Q2</td><td>AOD4184</td><td>TO-252</td><td>1</td><td>加热开关管</td></tr>
+      <tr><td class="mono">U7 / U8</td><td>INA180A3</td><td>SOT-23-5</td><td>2</td><td>电流放大</td></tr>
+      <tr><td class="mono">R45 / R46</td><td>10mΩ ±1% 1W</td><td>1206</td><td>2</td><td>采样电阻</td></tr>
+      <tr><td class="mono">R47 / R48</td><td>33kΩ ±1%</td><td>0805</td><td>1</td><td>分压上臂</td></tr>
+      <tr><td class="mono">R49</td><td>11kΩ ±1%</td><td>0805</td><td>1</td><td>分压下臂</td></tr>
+      <tr><td class="mono">Rg</td><td>100Ω</td><td>0805</td><td>1</td><td>栅极电阻</td></tr>
+      <tr><td class="mono">Rgs</td><td>10kΩ</td><td>0805</td><td>1</td><td>栅极下拉</td></tr>
+      <tr><td class="mono">C32 / C33</td><td>100nF</td><td>0805</td><td>2</td><td>电压滤波 + INA 去耦</td></tr>
+      <tr><td class="mono">J2</td><td>加热棒接口 2P</td><td>XH2.54</td><td>1</td><td>直插</td></tr>
+    </tbody>
+  </table>
+
+  <p>新增 <b>12 个器件</b>，成本约 <b>12 元</b>。</p>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">06</span><h2>PCB 改动</h2></div>
+
+  <p>现有板已完成布线与铺铜，本次改动需要局部重布。</p>
+
+  <table>
+    <thead><tr><th style="width:34%">改动</th><th style="width:16%">难度</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>DRV8871 的 GND 断串采样电阻</td><td>高</td><td>三个 GND 脚（1/7/9）全部改接到 10mΩ 高端，功率地要重走</td></tr>
+      <tr><td>加热通路（MOS + 采样 + 接口）</td><td>中</td><td>从 12V 引出，走 60 mil 以上</td></tr>
+      <tr><td>INA180 ×2 放置</td><td>中</td><td>紧贴各自采样电阻，输出线走模拟区</td></tr>
+      <tr><td>分压电阻 + 滤波</td><td>低</td><td>靠近 PA2</td></tr>
+      <tr><td>地平面重做</td><td><b>高</b></td><td>功率地与信号地单点汇合，避免加热电流穿过 MCU 地</td></tr>
+    </tbody>
+  </table>
+
+  <div class="warn">
+    <b>最大的风险在地。</b>采样电阻把功率地"切开"了，处理不当会出现：
+    加热一开、ADC 读数就跳；或者电机一转、串口就乱码。这是本次改板最需要验证的地方。
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">07</span><h2>软件需求</h2></div>
+
+  <h3>ADC 采集</h3>
+<pre>ADC1 扫描模式 + DMA，3 通道连续转换
+采样率 10 kHz（每个通道约 3.3 kHz）
+
+换算：
+  V_bus = adc[0] × 3.3 / 4095 × 4.0
+  I_motor = adc[1] × 3.3 / 4095 / 100 / 0.01
+  I_heat  = adc[2] × 3.3 / 4095 / 100 / 0.01</pre>
+
+  <h3>电流滤波</h3>
+  <p>PWM 斩波会造成 10~20% 的电流纹波，直接读会跳。建议一阶低通：</p>
+<pre>y[n] = α × x[n] + (1 - α) × y[n-1]
+α = 0.1   →  截止频率约 160 Hz（10 kHz 采样下）</pre>
+
+  <h3>加热功率控制</h3>
+<pre>目标功率 P_target → 占空比
+
+D = P_target × R_heat / V_bus²
+
+用实测 V_bus 补偿，电源电压波动时功率基本不变。</pre>
+
+  <h3>保护</h3>
+  <ul class="plain">
+    <li><b>过流</b>：I_motor 或 I_heat 超阈值 → 立即关 PWM</li>
+    <li><b>堵转</b>：电流大且速度接近 0，持续 500ms → 停机</li>
+    <li><b>欠压</b>：V_bus &lt; 10V → 停止加热，提示</li>
+    <li><b>加热超时</b>：连续加热超过设定时间 → 强制关闭（防止失控）</li>
+  </ul>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">08</span><h2>需要确认的参数</h2></div>
+
+  <table>
+    <thead><tr><th style="width:28%">参数</th><th style="width:26%">当前假设</th><th>影响</th></tr></thead>
+    <tbody>
+      <tr><td>加热棒功率</td><td>24W（12V / 2A）</td><td>MOS 选型、走线宽度</td></tr>
+      <tr><td>电机额定电流</td><td>0.8A（3W 版）</td><td>R3 限流电阻取值</td></tr>
+      <tr><td>母线最大电流</td><td>4A（电机 2A + 加热 2A）</td><td>采样电阻与电源座选型</td></tr>
+      <tr><td>是否需要温度闭环</td><td>否（开环 PWM）</td><td>是否加 NTC</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<footer>
+  <span>V2 功能扩展方案 · 2026-11-05</span>
+  <span>STM32F103C8T6 · DRV8871 · AOD4184</span>
+</footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>双传感器电机方案对比</title>
+<style>
+:root{
+  --bg:#FAF7F2; --surface:#FFFFFF; --ink:#2B2723; --ink-soft:#6E6559;
+  --ink-light:#9A9086; --line:#E6DFD4; --line-soft:#F0EAE0;
+  --accent:#B5713F; --green:#4F6B5B;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
+  font-size:15px; line-height:1.8; padding:0 24px 100px;
+}
+.wrap{max-width:940px;margin:0 auto}
+header{padding:72px 0 44px;border-bottom:1px solid var(--line)}
+.kicker{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:20px}
+h1{font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-size:34px;line-height:1.35;font-weight:600;letter-spacing:-.5px;margin-bottom:14px}
+.sub{font-size:15px;color:var(--ink-soft);line-height:1.75}
+
+section{padding:56px 0}
+.plans{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.plan{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:26px 24px 22px}
+.plan-tag{font-family:Consolas,monospace;font-size:11px;color:var(--accent);letter-spacing:.1em;margin-bottom:10px}
+.plan h2{font-family:Georgia,"Songti SC",serif;font-size:18px;font-weight:600;margin-bottom:4px}
+.plan-sub{font-size:12.5px;color:var(--ink-light);margin-bottom:18px}
+.plan svg{width:100%;height:auto;display:block}
+
+h2.tbl-title{font-family:Georgia,"Songti SC",serif;font-size:22px;font-weight:600;margin-bottom:24px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-weight:600;font-size:12px;letter-spacing:.06em;color:var(--ink-light);text-transform:uppercase;padding:0 16px 12px 0;border-bottom:1px solid var(--line)}
+td{padding:13px 16px 13px 0;border-bottom:1px solid var(--line-soft);color:var(--ink-soft)}
+td:first-child{color:var(--ink);font-weight:500}
+tr:last-child td{border-bottom:none}
+tr.total td{border-top:1px solid var(--line);border-bottom:none;padding-top:15px;font-weight:600;color:var(--ink)}
+.mono{font-family:Consolas,"SF Mono","JetBrains Mono",monospace;font-size:13px}
+.hi{color:var(--green);font-weight:600}
+.dim{color:var(--ink-light)}
+.same{color:var(--ink-light);font-size:13px}
+.foot{margin-top:20px;font-size:12px;color:var(--ink-light);line-height:1.7}
+code{font-family:Consolas,monospace;font-size:12.5px;background:#F5F1EA;padding:1.5px 5px;border-radius:2px;color:#8A5B36}
+
+.notes{list-style:none;margin-top:4px}
+.notes li{position:relative;padding-left:20px;margin-bottom:16px;color:var(--ink-soft);font-size:14.5px;line-height:1.85}
+.notes li::before{content:"";position:absolute;left:0;top:13px;width:6px;height:1px;background:var(--accent)}
+.notes b{color:var(--ink);font-weight:600}
+
+@media (max-width:760px){
+  body{padding:0 18px 70px}
+  h1{font-size:26px}
+  header{padding:52px 0 34px}
+  section{padding:42px 0}
+  .plans{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kicker">Scheme Comparison</div>
+  <h1>双传感器电机方案对比</h1>
+  <p class="sub">增量式编码器置于电机尾部，AS5600 磁编码器置于输出轴侧面。两方案机械结构完全一致，唯一变量为尾部编码器类型。</p>
+</header>
+
+<section>
+  <h2 class="tbl-title">方案说明</h2>
+  <ul class="notes">
+    <li><b>不自行加装光电编码器。</b>码盘与对射管的同心度要求苛刻，机械加工与 3D 打印精度难以保证，装配偏差会直接引入新的误差源，得不偿失。</li>
+    <li><b>新购光电编码器电机可选行星减速版本。</b>力矩足以覆盖教学需求，方案 B 同时满足"光电对比"与"高精度"两项要求。</li>
+    <li><b>当前路线：</b>先用方案 A 观察霍尔与磁编码器的实际差异；若后续对精度有更高要求，直接切换至方案 B。</li>
+  </ul>
+</section>
+
+<section>
+  <div class="plans">
+    <div class="plan">
+      <div class="plan-tag">SCHEME A</div>
+      <h2>霍尔 + 磁编码器</h2>
+      <div class="plan-sub">复用现有电机 · 新增成本约 20 元</div>
+
+      <svg viewBox="0 0 300 150" xmlns="http://www.w3.org/2000/svg" role="img">
+        <title>方案一布局：霍尔码盘在电机尾部，磁环与 AS5600 在输出轴侧面</title>
+        <rect x="16" y="58" width="92" height="12" fill="#D3D1C7" stroke="#888780" stroke-width="0.5"/>
+        <text x="62" y="88" font-size="10" fill="#888780" text-anchor="middle">输出轴</text>
+
+        <rect x="34" y="50" width="8" height="28" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+        <text x="38" y="44" font-size="9" fill="#BA7517" text-anchor="middle">磁环</text>
+        <rect x="24" y="92" width="28" height="16" rx="2" fill="#C0DD97" stroke="#639922" stroke-width="0.5"/>
+        <text x="38" y="118" font-size="9" fill="#3B6D11" text-anchor="middle">AS5600</text>
+        <line x1="38" y1="78" x2="38" y2="92" stroke="#888780" stroke-width="0.4" stroke-dasharray="2 2"/>
+
+        <rect x="108" y="36" width="78" height="66" rx="7" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="0.5"/>
+        <text x="147" y="62" font-size="10" fill="#2C2C2A" text-anchor="middle">减速箱</text>
+        <text x="147" y="76" font-size="10" fill="#888780" text-anchor="middle">+ 电机</text>
+
+        <rect x="196" y="42" width="24" height="54" fill="#F5C4B3" stroke="#993C1D" stroke-width="0.5"/>
+        <text x="208" y="108" font-size="9" fill="#993C1D" text-anchor="middle">霍尔码盘</text>
+
+        <line x1="30" y1="134" x2="120" y2="134" stroke="#4F6B5B" stroke-width="0.8"/>
+        <text x="75" y="147" font-size="9" fill="#4F6B5B" text-anchor="middle">磁学区</text>
+        <line x1="185" y1="134" x2="240" y2="134" stroke="#993C1D" stroke-width="0.8"/>
+        <text x="212" y="147" font-size="9" fill="#993C1D" text-anchor="middle">磁学区</text>
+      </svg>
+    </div>
+
+    <div class="plan">
+      <div class="plan-tag">SCHEME B</div>
+      <h2>光电 + 磁编码器</h2>
+      <div class="plan-sub">新购光电电机 · 新增成本约 140 元</div>
+
+      <svg viewBox="0 0 300 150" xmlns="http://www.w3.org/2000/svg" role="img">
+        <title>方案二布局：光电编码器在电机尾部，磁环与 AS5600 在输出轴侧面</title>
+        <rect x="16" y="58" width="92" height="12" fill="#D3D1C7" stroke="#888780" stroke-width="0.5"/>
+        <text x="62" y="88" font-size="10" fill="#888780" text-anchor="middle">输出轴</text>
+
+        <rect x="34" y="50" width="8" height="28" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+        <text x="38" y="44" font-size="9" fill="#BA7517" text-anchor="middle">磁环</text>
+        <rect x="24" y="92" width="28" height="16" rx="2" fill="#C0DD97" stroke="#639922" stroke-width="0.5"/>
+        <text x="38" y="118" font-size="9" fill="#3B6D11" text-anchor="middle">AS5600</text>
+        <line x1="38" y1="78" x2="38" y2="92" stroke="#888780" stroke-width="0.4" stroke-dasharray="2 2"/>
+
+        <rect x="108" y="36" width="78" height="66" rx="7" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="0.5"/>
+        <text x="147" y="62" font-size="10" fill="#2C2C2A" text-anchor="middle">减速箱</text>
+        <text x="147" y="76" font-size="10" fill="#888780" text-anchor="middle">+ 电机</text>
+
+        <rect x="196" y="42" width="24" height="54" fill="#B5D4F4" stroke="#185FA5" stroke-width="0.5"/>
+        <text x="208" y="108" font-size="9" fill="#185FA5" text-anchor="middle">光电编码器</text>
+
+        <line x1="30" y1="134" x2="120" y2="134" stroke="#4F6B5B" stroke-width="0.8"/>
+        <text x="75" y="147" font-size="9" fill="#4F6B5B" text-anchor="middle">磁学区</text>
+        <line x1="185" y1="134" x2="240" y2="134" stroke="#185FA5" stroke-width="0.8"/>
+        <text x="212" y="147" font-size="9" fill="#185FA5" text-anchor="middle">光学区</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2 class="tbl-title">参数对比</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:36%">项目</th>
+        <th style="width:32%">方案 A · 霍尔</th>
+        <th style="width:32%">方案 B · 光电</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>尾部增量编码器</td>
+        <td>霍尔 13 线</td>
+        <td>光电 360 线</td>
+      </tr>
+      <tr>
+        <td>四倍频计数（电机轴）</td>
+        <td class="mono">52 CPR</td>
+        <td class="mono hi">1440 CPR</td>
+      </tr>
+      <tr>
+        <td>角度分辨率（电机轴）</td>
+        <td class="mono">6.92°</td>
+        <td class="mono hi">0.25°</td>
+      </tr>
+      <tr>
+        <td>角度分辨率（输出轴 · 1:21.3）</td>
+        <td class="mono">0.325°</td>
+        <td class="mono hi">0.012°</td>
+      </tr>
+      <tr>
+        <td>1 ms 采样最低可测速</td>
+        <td class="mono">54 rpm</td>
+        <td class="mono hi">2 rpm</td>
+      </tr>
+      <tr>
+        <td>响应延迟</td>
+        <td>低</td>
+        <td class="hi">极低</td>
+      </tr>
+      <tr>
+        <td>灰尘 / 油污敏感度</td>
+        <td>不敏感</td>
+        <td class="dim">敏感，遮光即丢脉冲</td>
+      </tr>
+      <tr>
+        <td>输出轴磁编码器</td>
+        <td class="same">AS5600 · 4096 counts/rev（两方案相同）</td>
+        <td class="same">AS5600 · 4096 counts/rev</td>
+      </tr>
+      <tr>
+        <td>绝对角度分辨率</td>
+        <td class="mono">0.088°</td>
+        <td class="mono">0.088°</td>
+      </tr>
+      <tr>
+        <td>绝对精度（INL）</td>
+        <td class="mono">±0.5°</td>
+        <td class="mono">±0.5°</td>
+      </tr>
+      <tr><td>新增硬件成本</td><td class="mono">≈ 20 元</td><td class="mono">≈ 140 元</td></tr>
+    </tbody>
+  </table>
+
+  <p class="foot">
+    最低可测速按 1 ms 采样窗内至少 1 个计数估算：<code>60 / (每圈计数 × 采样周期)</code>。
+    霍尔：<code>60 / (52 × 21.3 × 0.001) ≈ 54 rpm</code>；光电：<code>60 / (1440 × 21.3 × 0.001) ≈ 2 rpm</code>。
+  </p>
+</section>
+
+</div>
+</body>
+</html>

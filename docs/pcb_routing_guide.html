@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>手动布线参考</title>
+<style>
+:root{
+  --bg:#FAF7F2; --surface:#FFFFFF; --ink:#2B2723; --ink-soft:#6E6559;
+  --ink-light:#9A9086; --line:#E6DFD4; --line-soft:#F0EAE0;
+  --accent:#B5713F; --accent-soft:#F4E9DE;
+  --green:#4F6B5B; --green-soft:#E8EDE9;
+  --red:#A8503F; --red-soft:#F6E7E3;
+  --code-bg:#F5F1EA;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;font-size:15px;line-height:1.8;padding:0 24px 110px}
+.wrap{max-width:940px;margin:0 auto}
+header{padding:76px 0 46px;border-bottom:1px solid var(--line)}
+.kicker{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:20px}
+h1{font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-size:34px;line-height:1.35;font-weight:600;letter-spacing:-.5px;margin-bottom:14px}
+.sub{font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-size:16px;color:var(--ink-soft);line-height:1.75;max-width:660px}
+.meta{display:flex;flex-wrap:wrap;gap:26px;margin-top:30px;font-size:13px;color:var(--ink-light)}
+.meta b{color:var(--ink-soft);font-weight:500}
+
+section{padding:58px 0;border-bottom:1px solid var(--line-soft)}
+section:last-of-type{border-bottom:none}
+.sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:26px}
+.sec-num{font-family:Georgia,serif;font-size:13px;color:var(--accent);letter-spacing:.1em;font-weight:600}
+h2{font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-size:23px;font-weight:600;letter-spacing:-.2px}
+h3{font-size:15px;font-weight:600;margin:30px 0 10px}
+h3:first-child{margin-top:0}
+p{color:var(--ink-soft);margin-bottom:14px}
+p strong{color:var(--ink);font-weight:600}
+
+.warn{border-left:2px solid var(--red);background:var(--red-soft);padding:18px 22px;margin:18px 0;font-size:14px;color:#7A3A2E;border-radius:0 3px 3px 0}
+.warn b{font-weight:600}
+.note{border-left:2px solid var(--accent);background:var(--accent-soft);padding:16px 20px;margin:18px 0;font-size:14px;color:#6B4E33;border-radius:0 3px 3px 0}
+.ok{border-left:2px solid var(--green);background:var(--green-soft);padding:16px 20px;margin:18px 0;font-size:14px;color:#3D5245;border-radius:0 3px 3px 0}
+
+table{width:100%;border-collapse:collapse;margin:10px 0 16px;font-size:13.5px}
+th{text-align:left;font-weight:600;font-size:12px;letter-spacing:.06em;color:var(--ink-light);text-transform:uppercase;padding:0 14px 9px 0;border-bottom:1px solid var(--line)}
+td{padding:10px 14px 10px 0;border-bottom:1px solid var(--line-soft);color:var(--ink-soft);vertical-align:top}
+td:first-child{color:var(--ink);font-weight:500}
+tr:last-child td{border-bottom:none}
+.mono{font-family:Consolas,"SF Mono","JetBrains Mono",monospace;font-size:12.5px;color:#8A5B36}
+.tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:2px;font-family:Consolas,monospace}
+.p0{background:var(--red-soft);color:#7A3A2E}
+.p1{background:var(--accent-soft);color:#6B4E33}
+.p2{background:var(--green-soft);color:#3D5245}
+
+.steps{counter-reset:s}
+.step{display:flex;gap:16px;padding:14px 0;border-bottom:1px solid var(--line-soft)}
+.step:last-child{border-bottom:none}
+.step .n{font-family:Consolas,monospace;font-size:12px;color:var(--accent);font-weight:600;width:28px;flex-shrink:0;padding-top:2px}
+.step .b{flex:1}
+.step .t{font-size:14.5px;font-weight:600;margin-bottom:3px}
+.step .d{font-size:13px;color:var(--ink-light);line-height:1.65}
+
+ul.plain{list-style:none;margin:10px 0 16px}
+ul.plain li{position:relative;padding-left:18px;margin-bottom:8px;color:var(--ink-soft);font-size:14px}
+ul.plain li::before{content:"";position:absolute;left:0;top:11px;width:5px;height:1px;background:var(--accent)}
+ul.plain li b{color:var(--ink);font-weight:600}
+
+footer{padding-top:44px;font-size:12.5px;color:var(--ink-light);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+@media (max-width:760px){body{padding:0 18px 70px;font-size:14.5px}h1{font-size:26px}header{padding:52px 0 34px}section{padding:44px 0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kicker">Routing Guide</div>
+  <h1>手动布线参考</h1>
+  <p class="sub">motor_drive · 92 器件 · 双层板 · 按优先级列出必须手动布的 6 组网络</p>
+  <div class="meta">
+    <span><b>板框</b> 97.3 × 97.3 mm</span>
+    <span><b>安装孔</b> M2 × 4</span>
+    <span><b>日期</b> 2026-11-02</span>
+  </div>
+</header>
+
+<section>
+  <div class="sec-head"><span class="sec-num">⚠</span><h2>布线前必须先修一个原理图问题</h2></div>
+
+  <div class="warn">
+    <b>两个晶振被短接在同一个网络上。</b>
+  </div>
+
+  <p>PCB 里 <span class="mono">OSC_IN</span> 和 <span class="mono">OSC_OUT</span> 各挂了 6 个点：</p>
+
+  <table>
+    <thead><tr><th style="width:22%">网络</th><th>连接点</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">OSC_IN</td><td class="mono">C24.2 · U5.5 · U1.5 · X1.1 · X2.1 · C11.1</td></tr>
+      <tr><td class="mono">OSC_OUT</td><td class="mono">C25.2 · U5.6 · U1.6 · X1.3 · X2.2 · C12.1</td></tr>
+    </tbody>
+  </table>
+
+  <p>这意味着 <strong>U1（主控）和 U5（ST-Link）的晶振引脚并联，X1 和 X2 两颗晶振也并联</strong>。后果：</p>
+
+  <ul class="plain">
+    <li><b>输出对驱</b> —— STM32 的 OSC_OUT 是推挽输出，两个 MCU 的输出直接对撞</li>
+    <li><b>负载电容翻倍</b> —— C11(18pF) 和 C24(20pF) 并在同一侧，实际负载 38pF，远超晶振设计值</li>
+    <li><b>大概率不起振</b>，或者起振频率偏移，两个 MCU 都跑飞</li>
+  </ul>
+
+  <div class="ok">
+    <b>修复：</b>把 ST-Link 那一组的网络改名。在原理图里把 <span class="mono">X2 / C24 / C25 / U5.5 / U5.6</span> 上的网络分别改成 <span class="mono">OSC_IN_STL</span> 和 <span class="mono">OSC_OUT_STL</span>，然后 <span class="mono">设计 → 更新 PCB</span>。<br>
+    改完 PCB 上这两个网络各剩 3 个点（晶振 + 电容 + MCU 引脚），才是正常结构。
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">01</span><h2>布线顺序</h2></div>
+
+  <div class="steps">
+    <div class="step"><div class="n">P0</div><div class="b"><div class="t">电源主干</div><div class="d">12V → 5V → 3.3V，按电流给线宽，走最短路径</div></div></div>
+    <div class="step"><div class="n">P1</div><div class="b"><div class="t">去耦电容</div><div class="d">13 处，每个电容到引脚 &lt; 3 mm，短而粗</div></div></div>
+    <div class="step"><div class="n">P2</div><div class="b"><div class="t">USB 差分对</div><div class="d">Type-C → 10Ω 串阻 → MCU，等长并行走</div></div></div>
+    <div class="step"><div class="n">P3</div><div class="b"><div class="t">晶振</div><div class="d">两颗晶振到各自 MCU，短、等长、下方不走线</div></div></div>
+    <div class="step"><div class="n">P4</div><div class="b"><div class="t">调试与接口</div><div class="d">SWD 到排针、NRST、电机驱动、编码器</div></div></div>
+    <div class="step"><div class="n">P5</div><div class="b"><div class="t">剩下的交给自动布线</div><div class="d">上拉、下拉、LED、配置电阻</div></div></div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">02</span><h2>P0 · 电源主干</h2></div>
+
+  <h3>+12V <span class="tag p0">8 点</span></h3>
+  <table>
+    <thead><tr><th style="width:26%">连接点</th><th style="width:32%">作用</th><th>走线</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">DC1.1</td><td>电源输入</td><td rowspan="2">主线：DC1 → C13/C10 → U3.2<br><b>线宽 60–80 mil</b></td></tr>
+      <tr><td class="mono">C13.2 · C10.1 · C9.2 · C14.2</td><td>输入滤波</td></tr>
+      <tr><td class="mono">U3.2</td><td>MP2315 输入</td><td>主干终点</td></tr>
+      <tr><td class="mono">U2.5</td><td>电机驱动 VM</td><td>单独一支，<b>线宽 60 mil</b>，从 DC1 直接引出</td></tr>
+      <tr><td class="mono">R7.2</td><td>EN 分压</td><td>细支 15 mil</td></tr>
+    </tbody>
+  </table>
+
+  <h3>+5V <span class="tag p1">10 点</span></h3>
+  <table>
+    <thead><tr><th style="width:30%">连接点</th><th style="width:30%">作用</th><th>走线</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">L1.2</td><td>电感输出</td><td rowspan="2">主线：L1 → C16/C17 → U4.3<br><b>线宽 50 mil</b></td></tr>
+      <tr><td class="mono">C16.2 · C17.2 · C19.2</td><td>输出滤波</td></tr>
+      <tr><td class="mono">U4.3</td><td>LDO 输入</td><td>主干终点</td></tr>
+      <tr><td class="mono">C20.2 · C21.2</td><td>LDO 输入电容</td><td>紧贴 U4.3，20 mil</td></tr>
+      <tr><td class="mono">U6.2 · R10.2 · R32.2</td><td>保险丝 / 分压</td><td>15 mil</td></tr>
+    </tbody>
+  </table>
+
+  <h3>+3V3 <span class="tag p1">37 点</span></h3>
+  <p>这是全板最大的一张网，<strong>不要一根线连到底</strong>。按三个扇区走：</p>
+  <ul class="plain">
+    <li><b>主干</b>：U4.2 / U4.4（LDO 输出）→ 分两路，一路到主控区、一路到 ST-Link 区，<b>25 mil</b></li>
+    <li><b>MCU 电源脚</b>：U1 的 9 / 24 / 36 / 48 脚，U5 的 1 / 9 / 24 / 36 / 48 脚，每脚 <b>15 mil</b></li>
+    <li><b>上拉与连接器</b>：H1.1、H2.1、H4.3、LED 上拉等，<b>10–12 mil</b></li>
+  </ul>
+
+  <div class="note">
+    <b>GND 不要走线。</b>底层整片铺铜当地平面，所有 GND 焊盘就近打过孔下地。顶层的 GND 也用铺铜填充，不画线。
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">03</span><h2>P1 · 去耦电容</h2></div>
+
+  <p>这一组是自动布线最容易做坏的。每个电容到对应电源脚的距离必须 <strong>&lt; 3 mm</strong>，线宽 <strong>15–20 mil</strong>，走直线不要绕。</p>
+
+  <table>
+    <thead><tr><th style="width:22%">MCU</th><th style="width:30%">电源脚</th><th>去耦电容</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">U1（主控）</td><td class="mono">9 / 24 / 36 / 48</td><td class="mono">C2 C3 C4 C5 C6 C7 C8</td></tr>
+      <tr><td class="mono">U5（ST-Link）</td><td class="mono">1 / 9 / 24 / 36 / 48</td><td class="mono">C22 C23 C27 C28 C29 C30</td></tr>
+    </tbody>
+  </table>
+
+  <div class="warn">
+    <b>布完立刻锁定。</b>选中这些线 → 右键 → 锁定，否则自动布线会把它们重新绕一遍，等于白做。
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">04</span><h2>P2 · USB 差分对</h2></div>
+
+  <p>路径要当成<strong>一条连续的差分通道</strong>来看，中间经过 10Ω 串阻：</p>
+
+  <table>
+    <thead><tr><th style="width:20%">段</th><th style="width:40%">D+</th><th style="width:40%">D−</th></tr></thead>
+    <tbody>
+      <tr><td>Type-C 侧</td><td class="mono">USB1.6 / USB1.8 → R37.1</td><td class="mono">USB1.5 / USB1.7 → R39.1</td></tr>
+      <tr><td>串阻后</td><td class="mono">R37.2 → U5.33</td><td class="mono">R39.2 → U5.32</td></tr>
+    </tbody>
+  </table>
+
+  <ul class="plain">
+    <li><b>等长</b>：两段总长差 &lt; 50 mil</li>
+    <li><b>并行走</b>：间距恒定 6–8 mil，全程不分开</li>
+    <li><b>少过孔</b>：能在一层走完就不要换层</li>
+    <li><b>底层对应区域铺地</b>，不要有其他信号穿过</li>
+  </ul>
+
+  <p>另外 <span class="mono">R36.1</span> 也接在 DP 上（1.5kΩ 上拉，经 Q1 到 3.3V），这是 USB 枚举控制，走线可以普通，但要靠近 D+ 分支点。</p>
+
+  <p><span class="mono">CC1：USB1.4 → R40.2</span>、<span class="mono">CC2：USB1.10 → R31.1</span>，各 5.1kΩ 下拉，普通走线即可。</p>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">05</span><h2>P3 · 晶振</h2></div>
+
+  <p>修好网络后，两组各自独立：</p>
+
+  <table>
+    <thead><tr><th style="width:24%">组</th><th style="width:26%">网络</th><th>连接点</th></tr></thead>
+    <tbody>
+      <tr><td>主控</td><td class="mono">OSC_IN / OSC_OUT</td><td class="mono">U1.5 / U1.6 · X1 · C11 · C12</td></tr>
+      <tr><td>ST-Link</td><td class="mono">OSC_IN_STL / OSC_OUT_STL</td><td class="mono">U5.5 / U5.6 · X2 · C24 · C25</td></tr>
+    </tbody>
+  </table>
+
+  <ul class="plain">
+    <li>晶振到 MCU 距离 <b>&lt; 10 mm</b>，两根线等长</li>
+    <li>负载电容紧贴晶振引脚，不要放在 MCU 那侧</li>
+    <li><b>晶振正下方的两层都不要走线</b>，用禁布区圈起来</li>
+    <li>晶振周围包一圈地，打过孔接地</li>
+  </ul>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">06</span><h2>P4 · 调试与接口</h2></div>
+
+  <h3>SWD 到排针</h3>
+  <table>
+    <thead><tr><th style="width:30%">网络</th><th>连接点</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">ST_SWCLK</td><td class="mono">H1.2 ↔ U5.37</td></tr>
+      <tr><td class="mono">ST_SWDIO</td><td class="mono">H1.3 ↔ U5.34</td></tr>
+      <tr><td class="mono">T_NRST</td><td class="mono">U5.18 → R27.1，R27.2 接 NRST 网络</td></tr>
+      <tr><td class="mono">NRST</td><td class="mono">U1.7 · U5.7 · SW1.1 · C1.1 · C26.2 · R1.1 · R19.1 · R27.2</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    <b>NRST 上挂了 8 个点</b>，其中 U1.7 和 U5.7 都是 MCU 的复位脚。这是板载 ST-Link 的常规做法——调试器要能复位目标芯片。走线时先连 U1，再分支到排针和 U5。
+  </div>
+
+  <h3>电机驱动与编码器</h3>
+  <table>
+    <thead><tr><th style="width:26%">网络</th><th style="width:40%">连接点</th><th>线宽</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">IN1</td><td class="mono">U1.16 ↔ U2.3</td><td>15 mil</td></tr>
+      <tr><td class="mono">IN2</td><td class="mono">U1.17 ↔ U2.2</td><td>15 mil</td></tr>
+      <tr><td class="mono">OUT1</td><td class="mono">U2.6 ↔ H4.1</td><td><b>40 mil</b></td></tr>
+      <tr><td class="mono">OUT2</td><td class="mono">U2.8 ↔ H4.2</td><td><b>40 mil</b></td></tr>
+      <tr><td class="mono">PA0</td><td class="mono">U1.10 ↔ H4.5</td><td>12 mil</td></tr>
+      <tr><td class="mono">PA1</td><td class="mono">U1.11 ↔ H4.6</td><td>12 mil</td></tr>
+    </tbody>
+  </table>
+
+  <p>PA0/PA1 是编码器 AB 相，两根线<strong>尽量并行走</strong>，避免一根绕远。</p>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">07</span><h2>可以交给自动布线的</h2></div>
+
+  <ul class="plain">
+    <li>BOOT0 / BOOT1 的下拉电阻（R4/R16、R5/R24）</li>
+    <li>LED 及其限流电阻</li>
+    <li>SW1 按键</li>
+    <li>反馈与分压电阻的细支</li>
+    <li>I2C 的 PB6/PB7（有上拉，速率低）</li>
+    <li>PA9/PA10 串口线</li>
+  </ul>
+
+  <div class="warn">
+    <b>自动布线前务必锁定前面所有手动线。</b>全选手动布的线 → 右键 → 锁定，然后再跑自动布线。跑完检查三件事：<br><br>
+    · 有没有线宽被改小（尤其电源）<br>
+    · 地平面有没有被切成孤岛<br>
+    · 有没有锐角走线
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">08</span><h2>另一个可选的修改</h2></div>
+
+  <p><span class="mono">BOOT0</span> 和 <span class="mono">BOOT1</span> 也是两个 MCU 并联：</p>
+
+  <ul class="plain">
+    <li><span class="mono">BOOT0：U1.44 · U5.44 · R4.1 · R16.2</span></li>
+    <li><span class="mono">BOOT1：U1.20 · U5.20 · R5.2 · R24.1</span></li>
+  </ul>
+
+  <p>后果是：给 ST-Link 升级固件、需要拉高 BOOT0 时，<strong>主控也会一起进入系统存储器启动，程序停止运行</strong>。做实验的时候会表现为"升级完 ST-Link，主控就不动了"。</p>
+
+  <p>如果不想改，可以留着——升级时不跑主控，实际影响不大。想干净一点的话，在原理图里把 U5 的 BOOT0/BOOT1 拆成独立网络即可。</p>
+</section>
+
+<footer>
+  <span>motor_drive · 手动布线参考</span>
+  <span>92 器件 · 97.3×97.3 mm · 双层</span>
+</footer>
+
+</div>
+</body>
+</html>

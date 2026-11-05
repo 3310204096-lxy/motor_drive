@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>原理图修改方案</title>
+<style>
+:root{
+  --bg:#FAF7F2; --surface:#FFFFFF; --ink:#2B2723; --ink-soft:#6E6559;
+  --ink-light:#9A9086; --line:#E6DFD4; --line-soft:#F0EAE0;
+  --accent:#B5713F; --accent-soft:#F4E9DE;
+  --green:#4F6B5B; --green-soft:#E8EDE9;
+  --red:#A8503F; --red-soft:#F6E7E3;
+  --code-bg:#F5F1EA;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;font-size:15px;line-height:1.8;padding:0 24px 100px}
+.wrap{max-width:960px;margin:0 auto}
+header{padding:72px 0 44px;border-bottom:1px solid var(--line)}
+.kicker{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:18px}
+h1{font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-size:32px;line-height:1.35;font-weight:600;letter-spacing:-.5px;margin-bottom:12px}
+.sub{font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-size:15.5px;color:var(--ink-soft);line-height:1.75;max-width:680px}
+.meta{display:flex;flex-wrap:wrap;gap:26px;margin-top:26px;font-size:13px;color:var(--ink-light)}
+.meta b{color:var(--ink-soft);font-weight:500}
+
+section{padding:48px 0;border-bottom:1px solid var(--line-soft)}
+section:last-of-type{border-bottom:none}
+h2{font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-size:21px;font-weight:600;display:flex;align-items:baseline;gap:12px;margin-bottom:18px}
+.n{font-size:12px;color:var(--accent);font-family:Consolas,monospace;letter-spacing:.1em}
+h3{font-size:14.5px;font-weight:600;margin:22px 0 8px}
+p{color:var(--ink-soft);margin-bottom:12px;font-size:14.5px}
+p strong{color:var(--ink);font-weight:600}
+
+table{width:100%;border-collapse:collapse;margin:10px 0 14px;font-size:13px}
+th{text-align:left;font-weight:600;font-size:11.5px;letter-spacing:.05em;color:var(--ink-light);text-transform:uppercase;padding:0 12px 8px 0;border-bottom:1px solid var(--line)}
+td{padding:9px 12px 9px 0;border-bottom:1px solid var(--line-soft);color:var(--ink-soft);vertical-align:top}
+td:first-child{color:var(--ink);font-weight:500;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+.mono{font-family:Consolas,"SF Mono","JetBrains Mono",monospace;font-size:12px;color:#8A5B36}
+.hi{color:var(--green);font-weight:600}
+.dim{color:var(--ink-light)}
+
+pre{background:var(--code-bg);border:1px solid var(--line-soft);border-radius:4px;padding:16px 18px;overflow-x:auto;font-family:Consolas,"SF Mono","JetBrains Mono",monospace;font-size:12px;line-height:1.7;color:#3A342C;margin:10px 0 16px}
+
+.note{border-left:2px solid var(--accent);background:var(--accent-soft);padding:14px 18px;margin:16px 0;font-size:13.5px;color:#6B4E33;border-radius:0 3px 3px 0}
+.warn{border-left:2px solid var(--red);background:var(--red-soft);padding:14px 18px;margin:16px 0;font-size:13.5px;color:#7A3A2E;border-radius:0 3px 3px 0}
+.ok{border-left:2px solid var(--green);background:var(--green-soft);padding:14px 18px;margin:16px 0;font-size:13.5px;color:#3D5245;border-radius:0 3px 3px 0}
+.note b,.warn b,.ok b{font-weight:600}
+
+ul.check{list-style:none;margin:10px 0}
+ul.check li{position:relative;padding-left:26px;margin-bottom:10px;color:var(--ink-soft);font-size:14px;line-height:1.7}
+ul.check li::before{content:"□";position:absolute;left:0;top:-1px;color:var(--accent);font-size:14px}
+ul.check li b{color:var(--ink);font-weight:600}
+
+footer{padding-top:40px;font-size:12.5px;color:var(--ink-light);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+@media (max-width:760px){body{padding:0 16px 70px}h1{font-size:25px}header{padding:48px 0 32px}section{padding:38px 0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kicker">Schematic Modification List</div>
+  <h1>原理图修改方案</h1>
+  <p class="sub">
+    在现有 motor_drive 工程「主控与接口」页新增加热驱动、5 路模拟量采集电路。
+    共 <b>改 2 处现有器件 + 新增 27 个器件</b>，全部集中在这一页。
+  </p>
+  <div class="meta">
+    <span><b>改动页</b> 主控与接口</span>
+    <span><b>新增网络</b> 9 个</span>
+    <span><b>日期</b> 2026-11-05</span>
+  </div>
+</header>
+
+<section>
+  <h2><span class="n">01</span>修改总览</h2>
+
+  <table>
+    <thead><tr><th style="width:14%">类别</th><th style="width:34%">内容</th><th>影响</th></tr></thead>
+    <tbody>
+      <tr><td><b>改现有</b></td><td>U2 (DRV8871) 的 GND 断开串采样电阻</td><td>地网络少 3 个连接点</td></tr>
+      <tr><td><b>改现有</b></td><td>R3：30kΩ → <b>16kΩ</b></td><td>限流 0.82A → 1.5A</td></tr>
+      <tr><td><b>新增</b></td><td>电机电流采样（R41 + U7）</td><td>→ PA3</td></tr>
+      <tr><td><b>新增</b></td><td>电机电压差分（U9 + 8 个电阻电容）</td><td>→ PA2</td></tr>
+      <tr><td><b>新增</b></td><td>加热驱动（Q2 + Rg + Rgs + J2）</td><td>← PB0</td></tr>
+      <tr><td><b>新增</b></td><td>加热电流采样（R42 + U8）</td><td>→ PA5</td></tr>
+      <tr><td><b>新增</b></td><td>加热电压分压（R43/R44 + RC）</td><td>→ PB1</td></tr>
+      <tr><td><b>新增</b></td><td>温度接口（R45 + J3 + C34）</td><td>→ PA4</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    <b>位号说明：</b>现有器件已用到 R40 / C30 / U6 / Q1 / J1，新器件从 <b>R41 / C31 / U7 / Q2 / J2</b> 开始。
+    立创会自动分配，以下位号仅供对照，最终以实际为准。
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">02</span>改动 1：DRV8871 的 GND 断开</h2>
+
+  <p>U2 (DRV8871) 现在三个地脚 <span class="mono">1 / 7 / 9(EP)</span> 直接接 <span class="mono">GND</span>，全部断开，改为接到采样电阻高端。</p>
+
+<pre>改前：  U2.1 / U2.7 / U2.9  ────────  GND
+
+改后：  U2.1 / U2.7 / U2.9  ──┬──[R41 10mΩ]──  GND
+                              │
+                              └── 网络名：I_MOTOR_SENSE</pre>
+
+  <table>
+    <thead><tr><th style="width:20%">项</th><th>内容</th></tr></thead>
+    <tbody>
+      <tr><td>断开</td><td>U2 的 1、7、9 脚与 GND 的连线</td></tr>
+      <tr><td>新增网络</td><td><span class="mono">I_MOTOR_SENSE</span>（连接 U2.1/7/9、R41 一端、U7 的 IN+）</td></tr>
+      <tr><td>新增器件</td><td><b>R41</b>：10mΩ ±1% 1W，<span class="mono">I_MOTOR_SENSE</span> ↔ <span class="mono">GND</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="warn">
+    <b>这是本次改动风险最高的一处。</b>DRV8871 的地被抬到采样电阻高端后，
+    它的逻辑电平参考也随之抬高 <b>1A×10mΩ = 10mV</b>（可忽略），
+    但 PCB 上这一整条功率地要重新规划，不能再直接压在地平面上。
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">03</span>改动 2：R3 限流电阻</h2>
+
+  <table>
+    <thead><tr><th style="width:20%">项</th><th style="width:24%">原值</th><th>新值</th></tr></thead>
+    <tbody>
+      <tr><td>R3</td><td>30kΩ</td><td><b>16kΩ ±1%</b></td></tr>
+      <tr><td>对应限流</td><td>24.5 / 30 ≈ 0.82 A</td><td>24.5 / 16 ≈ <b>1.53 A</b></td></tr>
+    </tbody>
+  </table>
+
+  <p>配 3W 电机（额定 0.8A / 堵转 2A），0.82A 没有余量，启动无力。1.5A 留 1.9 倍余量。</p>
+</section>
+
+<section>
+  <h2><span class="n">04</span>新增：电机电流采样</h2>
+
+<pre>I_MOTOR_SENSE ──┬── U7.IN+ (1脚, 符号上的"+"输入)
+                └── R41 ── GND
+GND ──────────────── U7.IN− (3脚, 符号上的"−"输入)
+U7.OUT (4脚) ───[R53 1k]──┬── PA3
+                          └──[C37 100nF]── GND
+U7.VS  (5脚) ─────── +3V3
+U7.GND (2脚) ─────── GND</pre>
+
+  <table>
+    <thead><tr><th style="width:12%">位号</th><th style="width:26%">器件</th><th style="width:16%">封装</th><th>连接</th></tr></thead>
+    <tbody>
+      <tr><td>U7</td><td>INA180A3（×100）</td><td>SOT-23-5</td><td><b>按当前符号</b>：1→I_MOTOR_SENSE　2→GND　3→GND　4→(R53)→PA3　5→3V3</td></tr>
+      <tr><td>R53 / C37</td><td>1kΩ / 100nF</td><td>0805</td><td>U7 输出到 PA3 的 RC 低通（fc ≈ 1.6kHz）</td></tr>
+      <tr><td>C31</td><td>100nF</td><td>0805</td><td>U7 的 5 脚 ↔ 2 脚（就近去耦）</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2><span class="n">05</span>新增：电机电压差分放大</h2>
+
+  <p>U2 的两个输出 <span class="mono">OUT1 / OUT2</span> 引出，经差分放大后送 PA2。</p>
+
+<pre>U2.OUT1 ──[R46 100k]──┬── U9.IN− (2脚)
+                      │
+                 [R47 13k]──┬── U9.OUT (1脚) ── PA2
+                            │
+                            └── 反馈
+
+U2.OUT2 ──[R48 100k]──┬── U9.IN+ (3脚)
+                      │
+                 [R49 13k]── V_REF_1V65
+
+U9 供电：8脚 → +3V3    4脚 → GND</pre>
+
+  <table>
+    <thead><tr><th style="width:12%">位号</th><th style="width:24%">器件</th><th style="width:14%">封装</th><th>连接</th></tr></thead>
+    <tbody>
+      <tr><td>U9</td><td><b>MCP6002</b>（用 A 通道）</td><td>SOP-8</td><td>1→PA2（OUT）　2→R46/R47 节点（IN−）　3→R48/R49 节点（IN+）　4→GND　8→3V3</td></tr>
+      <tr><td>R46 / R48</td><td>100kΩ ±1%</td><td>0805</td><td>分别从 OUT1 / OUT2 接入</td></tr>
+      <tr><td>R47 / R49</td><td>13kΩ ±1%</td><td>0805</td><td>R47 为反馈（接 OUT），R49 接 1.65V</td></tr>
+      <tr><td>R50 / R51</td><td>10kΩ ±1%</td><td>0805</td><td>3V3 分压产生 <span class="mono">V_REF_1V65</span></td></tr>
+      <tr><td>C32</td><td>100nF</td><td>0805</td><td>V_REF_1V65 ↔ GND</td></tr>
+      <tr><td>C33</td><td>100nF</td><td>0805</td><td>U9 的 8 脚 ↔ 4 脚（去耦）</td></tr>
+    </tbody>
+  </table>
+
+  <div class="warn">
+    <b>U9 不能用 LM358。</b>LM358 在 3.3V 供电下输出最高只有约 1.8V，正转时信号被削顶。
+    必须用轨到轨运放：<b>MCP6002</b> 或 SGM8542。
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">06</span>新增：加热驱动</h2>
+
+<pre>+12V ──┬── J2.1（加热棒正端）
+       │
+J2.2 ──┴── Q2.D (3脚，漏极)
+            │
+        Q2.S (2脚，源极) ── I_HEAT_SENSE
+            │
+        [R42 10mΩ] ── GND
+
+PB0 ──[Rg 100Ω]──┬── Q2.G (1脚，栅极)
+                 │
+             [Rgs 10k]
+                 │
+                GND</pre>
+
+  <table>
+    <thead><tr><th style="width:12%">位号</th><th style="width:24%">器件</th><th style="width:14%">封装</th><th>连接</th></tr></thead>
+    <tbody>
+      <tr><td>Q2</td><td>AO3400（N-MOS）</td><td>SOT-23</td><td>1→Rg　2→I_HEAT_SENSE　3→J2.2</td></tr>
+      <tr><td>Rg</td><td>100Ω</td><td>0805</td><td>PB0 ↔ Q2 栅极</td></tr>
+      <tr><td>Rgs</td><td>10kΩ</td><td>0805</td><td>Q2 栅极 ↔ GND</td></tr>
+      <tr><td>J2</td><td>2P 接口 XH2.54</td><td>直插</td><td>1→+12V　2→Q2 漏极</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    <b>Rgs 的 10k 下拉不能省。</b>MCU 上电复位期间 GPIO 是高阻态，
+    没有下拉 MOS 可能被干扰误导通，加热棒直接全功率工作。
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">07</span>新增：加热电流采样</h2>
+
+<pre>I_HEAT_SENSE ──┬── U8.IN+ (1脚)
+               └── R42 ── GND
+GND ──────────────── U8.IN− (3脚)
+U8.OUT (4脚) ───[R54 1k]──┬── PA5
+                          └──[C38 100nF]── GND
+U8.VS  (5脚) ─────── +3V3
+U8.GND (2脚) ─────── GND</pre>
+
+  <table>
+    <thead><tr><th style="width:12%">位号</th><th style="width:26%">器件</th><th style="width:16%">封装</th><th>连接</th></tr></thead>
+    <tbody>
+      <tr><td>U8</td><td>INA180A3（×100）</td><td>SOT-23-5</td><td><b>按当前符号</b>：1→I_HEAT_SENSE　2→GND　3→GND　4→(R54)→PA5　5→3V3</td></tr>
+      <tr><td>R54 / C38</td><td>1kΩ / 100nF</td><td>0805</td><td>U8 输出到 PA5 的 RC 低通</td></tr>
+      <tr><td>R42</td><td>10mΩ ±1% 1W</td><td>1206</td><td>I_HEAT_SENSE ↔ GND</td></tr>
+      <tr><td>C35</td><td>100nF</td><td>0805</td><td>U8 的 5 脚 ↔ 2 脚</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2><span class="n">08</span>新增：加热电压采集</h2>
+
+  <p>测的是 <b>Q2 漏极</b>对地电压，软件里再用 <span class="mono">12 − V_drain</span> 反算加热棒电压。</p>
+
+<pre>J2.2 (Q2 漏极) ──[R43 33k]──┬──[R52 10k]──┬── PB1
+                             │             │
+                         [R44 11k]      [C36 1uF]
+                             │             │
+                            GND           GND</pre>
+
+  <table>
+    <thead><tr><th style="width:12%">位号</th><th style="width:22%">器件</th><th style="width:14%">封装</th><th>连接</th></tr></thead>
+    <tbody>
+      <tr><td>R43 / R44</td><td>33kΩ / 11kΩ ±1%</td><td>0805</td><td>分压 1:4</td></tr>
+      <tr><td>R52</td><td>10kΩ</td><td>0805</td><td>RC 滤波串联电阻</td></tr>
+      <tr><td>C36</td><td>1μF</td><td>0805</td><td>RC 滤波，时间常数 10ms</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    <b>为什么测漏极而不是加热棒两端：</b>加热棒一端固定接 12V，
+    另一端（漏极）才是 PWM 变化的点。导通时 ≈0V、关断时 ≈12V，
+    滤波后的平均值 = 12×(1−D)，反算得到加热棒实际电压 12×D。
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">09</span>新增：温度接口</h2>
+
+<pre>+3V3 ──[R45 10k ±1%]──┬── PA4
+                      │
+                    [C34 100nF]
+                      │
+                     GND
+                      │
+J3.1 ─────────────────┘  （接 NTC 一端）
+J3.2 ──── GND              （接 NTC 另一端）</pre>
+
+  <table>
+    <thead><tr><th style="width:12%">位号</th><th style="width:26%">器件</th><th style="width:16%">封装</th><th>连接</th></tr></thead>
+    <tbody>
+      <tr><td>R45</td><td>10kΩ ±1%</td><td>0805</td><td>3V3 ↔ PA4</td></tr>
+      <tr><td>C34</td><td>100nF</td><td>0805</td><td>PA4 ↔ GND（抗长线干扰）</td></tr>
+      <tr><td>J3</td><td>2P 接口 XH2.54</td><td>直插</td><td>1→PA4　2→GND</td></tr>
+    </tbody>
+  </table>
+
+  <p>NTC 是<b>外接探头</b>（10k B=3950，带引线），不焊在板上。分压点在主板上，探头通过 J3 接入。</p>
+</section>
+
+<section>
+  <h2><span class="n">10</span>新增网络名汇总</h2>
+
+  <table>
+    <thead><tr><th style="width:24%">网络名</th><th style="width:36%">连接</th><th>用途</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">I_MOTOR_SENSE</td><td>U2.1/7/9 · R41.1 · U7.3</td><td>电机电流采样高端</td></tr>
+      <tr><td class="mono">I_HEAT_SENSE</td><td>Q2.2 · R42.1 · U8.3</td><td>加热电流采样高端</td></tr>
+      <tr><td class="mono">V_REF_1V65</td><td>R50 · R51 · R49 · C32</td><td>差分放大偏置</td></tr>
+      <tr><td class="mono">V_MOTOR_ADC</td><td>U9.1 · PA2</td><td>电机电压（可省，直连也行）</td></tr>
+    </tbody>
+  </table>
+
+  <p>其余（PA2 / PA3 / PA4 / PA5 / PB1 的连线）可以直接用网络标签连接，不必显式命名。</p>
+</section>
+
+<section>
+  <h2><span class="n">11</span>改完后逐项检查</h2>
+
+  <ul class="check">
+    <li>U2 的 <b>1 / 7 / 9 脚</b>是否已从 GND 断开，全部接到 <b>I_MOTOR_SENSE</b></li>
+    <li>R41 / R42 是否为 <b>10mΩ</b>（不是 10k），封装 1206</li>
+    <li>U7 / U8 的 <b>3 脚接 IN+</b>（采样高端）、<b>4 脚接 IN−</b>（GND），别接反</li>
+    <li>U9 是 <b>MCP6002</b>，不是 LM358</li>
+    <li>差分电阻：<b>R46/R48 = 100k，R47/R49 = 13k</b>，四颗都要 ±1%</li>
+    <li>V_REF_1V65 是否有 <b>C32 100nF</b> 滤波</li>
+    <li>Q2 是 <b>AO3400（N 沟道）</b>，源极朝下接地，漏极朝上接加热棒</li>
+    <li>Q2 栅极是否有 <b>Rgs 10k 下拉到 GND</b></li>
+    <li>J2 的 1 脚接 <b>+12V</b>，2 脚接 <b>Q2 漏极</b>（别接反）</li>
+    <li>R45（NTC 上拉）是 <b>10k</b>，不是 100k</li>
+    <li>五个 ADC 引脚：<b>PA2 / PA3 / PA4 / PA5 / PB1</b> 是否都接对了</li>
+    <li>PB0 是否接在 TIM3_CH3（加热 PWM）</li>
+    <li>所有新增器件的 <b>AddIntoPcb</b> 是否为 true（否则不会进 PCB）</li>
+  </ul>
+
+  <div class="ok">
+    <b>检查完告诉我，我在立创里照着这份清单改；或者你先自己在界面上改，我改完再核对一遍。</b>
+  </div>
+</section>
+
+<footer>
+  <span>原理图修改方案 · 2026-11-05</span>
+  <span>主控与接口页 · 改 2 处 + 新增 27 件</span>
+</footer>
+
+</div>
+</body>
+</html>

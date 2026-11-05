@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>原理图审查报告</title>
+<style>
+:root{
+  --bg:#FAF7F2; --surface:#FFFFFF; --ink:#2B2723; --ink-soft:#6E6559;
+  --ink-light:#9A9086; --line:#E6DFD4; --line-soft:#F0EAE0;
+  --accent:#B5713F; --red:#A8503F; --red-soft:#F6E7E3;
+  --amber:#9A6B2F; --amber-soft:#FBF0DC; --green:#4F6B5B; --green-soft:#E8EDE9;
+  --code-bg:#F5F1EA;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;font-size:15px;line-height:1.8;padding:0 24px 110px}
+.wrap{max-width:940px;margin:0 auto}
+header{padding:76px 0 46px;border-bottom:1px solid var(--line)}
+.kicker{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:20px}
+h1{font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-size:34px;line-height:1.35;font-weight:600;letter-spacing:-.5px;margin-bottom:14px}
+.sub{font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-size:16px;color:var(--ink-soft);line-height:1.75;max-width:680px}
+.meta{display:flex;flex-wrap:wrap;gap:26px;margin-top:30px;font-size:13px;color:var(--ink-light)}
+.meta b{color:var(--ink-soft);font-weight:500}
+section{padding:56px 0;border-bottom:1px solid var(--line-soft)}
+section:last-of-type{border-bottom:none}
+h2{font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-size:23px;font-weight:600;letter-spacing:-.2px;margin-bottom:22px;display:flex;align-items:center;gap:12px}
+h2 .badge{font-size:12px;padding:2px 9px;border-radius:3px;font-family:Consolas,monospace;font-weight:600;letter-spacing:.05em}
+.b-p0{background:var(--red-soft);color:#7A3A2E}
+.b-p1{background:var(--amber-soft);color:#7A5620}
+.b-p2{background:var(--green-soft);color:#3D5245}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:22px 24px;margin-bottom:14px}
+.card.hi{border-left:3px solid var(--red)}
+.card.mid{border-left:3px solid var(--amber)}
+.card.low{border-left:3px solid var(--green)}
+.card h3{font-size:15.5px;font-weight:600;margin-bottom:8px}
+.card p{color:var(--ink-soft);font-size:14px;margin-bottom:10px}
+.card p:last-child{margin-bottom:0}
+.card .ev{font-family:Consolas,"SF Mono",monospace;font-size:12.5px;background:var(--code-bg);padding:10px 14px;border-radius:3px;margin:8px 0;color:#3A342C;overflow-x:auto;line-height:1.7}
+.card .fix{font-size:13.5px;color:var(--green);margin-top:8px}
+.card .fix b{color:var(--green);font-weight:600}
+
+.verdict{background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:26px 28px;margin:26px 0}
+.verdict .row{display:flex;gap:14px;padding:10px 0;border-bottom:1px solid var(--line-soft);font-size:14px}
+.verdict .row:last-child{border-bottom:none}
+.verdict .k{width:70px;flex-shrink:0;font-family:Consolas,monospace;font-size:12px;color:var(--ink-light);padding-top:2px}
+.verdict .v{flex:1;color:var(--ink-soft)}
+.verdict .v b{color:var(--ink)}
+
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13.5px}
+th{text-align:left;font-weight:600;font-size:12px;letter-spacing:.06em;color:var(--ink-light);text-transform:uppercase;padding:0 14px 9px 0;border-bottom:1px solid var(--line)}
+td{padding:10px 14px 10px 0;border-bottom:1px solid var(--line-soft);color:var(--ink-soft);vertical-align:top}
+td:first-child{color:var(--ink);font-weight:500}
+tr:last-child td{border-bottom:none}
+.mono{font-family:Consolas,"SF Mono","JetBrains Mono",monospace;font-size:12.5px;color:#8A5B36}
+
+.ok{border-left:2px solid var(--green);background:var(--green-soft);padding:16px 20px;margin:18px 0;font-size:14px;color:#3D5245;border-radius:0 3px 3px 0}
+.note{border-left:2px solid var(--accent);background:#F4E9DE;padding:16px 20px;margin:18px 0;font-size:14px;color:#6B4E33;border-radius:0 3px 3px 0}
+
+ul.plain{list-style:none;margin:10px 0 16px}
+ul.plain li{position:relative;padding-left:18px;margin-bottom:8px;color:var(--ink-soft);font-size:14px}
+ul.plain li::before{content:"";position:absolute;left:0;top:11px;width:5px;height:1px;background:var(--accent)}
+ul.plain li b{color:var(--ink);font-weight:600}
+
+footer{padding-top:44px;font-size:12.5px;color:var(--ink-light);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+@media (max-width:760px){body{padding:0 18px 70px;font-size:14.5px}h1{font-size:26px}header{padding:52px 0 34px}section{padding:44px 0}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kicker">Schematic Review</div>
+  <h1>原理图审查报告</h1>
+  <p class="sub">按网络表逐点核对了 92 个器件的连接关系、器件参数与电源架构。共发现 2 个致命问题、4 个严重问题、6 个规范问题。</p>
+  <div class="meta">
+    <span><b>器件</b> 92</span>
+    <span><b>网络</b> 63</span>
+    <span><b>日期</b> 2026-11-02</span>
+  </div>
+</header>
+
+<section>
+  <div class="verdict">
+    <div class="row"><div class="k">P0</div><div class="v"><b>2 个</b> — 会导致板子不能正常工作</div></div>
+    <div class="row"><div class="k">P1</div><div class="v"><b>4 个</b> — 可能引发异常，建议改</div></div>
+    <div class="row"><div class="k">P2</div><div class="v"><b>6 个</b> — 规范 / BOM 问题</div></div>
+    <div class="row"><div class="k">BOM</div><div class="v"><b>5 个器件</b>缺 LCSC 料号，<b>4 个电容</b>没有值</div></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="badge b-p0">P0</span>致命问题</h2>
+
+  <div class="card hi">
+    <h3>1. USB 的 5V 和 MP2315 的 5V 输出直接并联</h3>
+    <p>Type-C 的 VBUS 经保险丝 U6 后，接到的正是 MP2315 降压输出的 <span class="mono">+5V</span> 网络。两个独立的 5V 源短接在一起。</p>
+    <div class="ev">VBUS 网络 ($7N292)：USB1.2 · USB1.11 · U6.1
+U6.2 → +5V
++5V 网络：L1.2（MP2315 输出）· U4.3（LDO 输入）· C16/C17/C20/C21 …</div>
+    <p><b>后果：</b>12V 适配器和 USB 线同时插入时，USB 主机的 5V 和 MP2315 的 5V 会互相灌电流。轻则保护、重则烧掉电脑的 USB 口——主机端只有 500mA 限流，而 MP2315 能输出 3A。</p>
+    <div class="fix"><b>改法：</b>两路各串一个肖特基二极管（SS34 / B5819W）做 ORing，或者中间加负载开关（如 TPS22918）做电源切换。最简单的是把 USB 的 VBUS 改成只给 ST-Link 供电、不进系统 5V。</div>
+  </div>
+
+  <div class="card hi">
+    <h3>2. VBAT 悬空</h3>
+    <p>U1 的 1 脚（VBAT）网络上只有它自己一个点，没接电源也没接电容。</p>
+    <div class="ev">VBAT：U1.1          ← 全网只有这一个点</div>
+    <p>STM32F103 数据手册明确要求：不使用 RTC 时，VBAT 应接到 VDD，或至少加 100nF 到地。悬空会让备份域处于不确定状态，可能引入噪声，也可能影响上电复位。</p>
+    <div class="fix"><b>改法：</b>VBAT 直接接 +3V3（最简单），或者加一颗 100nF 到地。</div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="badge b-p1">P1</span>严重问题</h2>
+
+  <div class="card mid">
+    <h3>3. D+ 上拉用了 NPN，输出电压不够</h3>
+    <p>Q1 是 <span class="mono">SS8050（NPN）</span>，接法是集电极接 3.3V、发射极经 1.5kΩ 到 D+、基极受控——这是射极跟随器。</p>
+    <div class="ev">Q1.3 (C) → +3V3
+Q1.2 (E) → R36(1.5k) → DP
+Q1.1 (B) → R32 / R35 / R38 分压网络</div>
+    <p><b>两个问题：</b></p>
+    <ul class="plain">
+      <li>射随输出 = 3.3V − V<sub>BE</sub> ≈ <b>2.6V</b>，而 USB 全速设备要求 D+ 上拉后达到 <b>3.0~3.6V</b>，2.6V 处在识别边缘</li>
+      <li>逻辑反了：NPN 是基极<b>高电平</b>导通，而 ST-Link 固件通常按 PNP（低电平连接）设计</li>
+    </ul>
+    <div class="fix"><b>改法：</b>换成 PNP（SS8550），发射极接 3.3V、集电极经 1.5kΩ 到 D+、基极下拉。这样导通时 D+ 直接拿到 3.3V，逻辑也和标准一致。</div>
+  </div>
+
+  <div class="card mid">
+    <h3>4. NRST 上挂了 1.1μF，复位沿过缓</h3>
+    <p>NRST 网络上有两个电容并联：C26（100nF）+ C1（<b>1μF</b>），同时还并着两个 MCU 的内部上拉。</p>
+    <div class="ev">NRST：U1.7 · U5.7 · SW1.1 · C26.1(100nF) · C1.1(1uF) · R1(10k) · R19(100k) · R27.2</div>
+    <p>1.1μF 配 20kΩ 等效上拉，时间常数约 <b>7.6ms</b>。复位解除时电压缓慢爬升，施密特触发器可能多次翻转，表现为"偶尔复位不成功"或者"上电跑飞"。</p>
+    <div class="fix"><b>改法：</b>C1 改成 <b>100nF</b>，或者直接删掉（C26 已足够）。</div>
+  </div>
+
+  <div class="card mid">
+    <h3>5. C20 / C21 / C22 / C23 没有值</h3>
+    <p>这四颗是 LDO 前后的滤波电容，目前值和 LCSC 料号都是空的。</p>
+    <div class="ev">C20："" "" C0805      C21："" "" C0805
+C22："" "" C0805      C23："" "" C0805</div>
+    <p>BOM 里没法采购，PCB 上也看不出该用多大。</p>
+    <div class="fix"><b>改法：</b>按 LDO 常规配置填值——输入侧 10μF + 100nF，输出侧 22μF + 100nF。</div>
+  </div>
+
+  <div class="card mid">
+    <h3>6. MP2315 输出 4.34V，LDO 压差不足</h3>
+    <p>反馈电阻 R10 = 40.2kΩ（上）、R11 = 9.09kΩ（下）。按 MP2315 的 V<sub>FB</sub> = 0.8V 计算：</p>
+    <div class="ev">Vout = 0.8 × (1 + 40.2 / 9.09) = 0.8 × 5.42 ≈ 4.34V</div>
+    <p>U4 是 3.3V / 1A 的 LDO，压差只有 <b>1.04V</b>。AMS1117 类器件满载需要 1.1~1.3V dropout，重载时会掉出稳压区，3.3V 跟着往下掉。</p>
+    <div class="fix"><b>建议：</b>先确认 MP2315 的 V<sub>FB</sub> 是不是 0.8V（查数据手册）。如果是，把 R11 改成 <b>8.06kΩ</b>（Vout ≈ 4.79V）或 R10 改成 <b>47kΩ</b>（Vout ≈ 4.94V），给 LDO 留足压差。</div>
+    <p style="margin-top:8px;font-size:13px;color:var(--ink-light)">你之前说分压确认过，如果确实是按 4.34V 的目标设计的（比如 LDO 是低压差型号），这条忽略。</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="badge b-p2">P2</span>规范问题</h2>
+
+  <div class="card low">
+    <h3>7. X2 的负载电容偏小</h3>
+    <p>X2 规格是 <b>8MHz / 负载电容 20pF</b>，但配的 C24 / C25 只有 20pF。实际负载电容是两电容串联再加上杂散电容：</p>
+    <div class="ev">C_load = (20×20)/(20+20) + Cstray ≈ 10 + 4 = 14pF   ← 需要 20pF</div>
+    <p>X1 那组是对的（规格 12pF，配 18pF，算下来 13pF）。</p>
+    <div class="fix"><b>改法：</b>C24 / C25 改成 <b>33pF</b>，算下来 16.5 + 4 ≈ 20.5pF。</div>
+  </div>
+
+  <div class="card low">
+    <h3>8. U5 的 15 脚和 26 脚并联在 SWCLK 上</h3>
+    <div class="ev">T_JTCK_SWCLK：U5.15 (PA5) · U5.26 (PB13) · R34.2</div>
+    <p>两个 IO 直接短接。如果固件把两个都配成推挽输出，会互相打架；只有一个做输出、另一个做输入才安全。</p>
+    <div class="fix"><b>确认：</b>看 ST-Link 固件的引脚配置，或者查旧板的原理图是不是也这么接的。</div>
+  </div>
+
+  <div class="card low">
+    <h3>9. USB1 的封装名和器件对不上</h3>
+    <p>器件描述是「TYPE-C 母座 16P 4脚插件带定位柱」，但封装名是 <span class="mono">USB-C-SMD_TYPE-C-6PIN-2MD-073</span>（6PIN）。实际焊盘编号到 14，说明封装确实有 14 个焊盘——名字写错了。</p>
+    <div class="fix"><b>确认：</b>打开封装看一眼，确保焊盘数和器件引脚数一致，别到时候贴不上。</div>
+  </div>
+
+  <div class="card low">
+    <h3>10. R3 缺 LCSC 料号</h3>
+    <p>R3 = 30K（格式也和其他不一致，应写 30kΩ），LCSC Part Name 为空。</p>
+    <div class="fix"><b>补料号</b>即可。</div>
+  </div>
+
+  <div class="card low">
+    <h3>11. BOOT0 / BOOT1 两个 MCU 并联</h3>
+    <div class="ev">BOOT0：U1.44 · U5.44 · R4.1 · R16.2
+BOOT1：U1.20 · U5.20 · R5.2 · R24.1</div>
+    <p>给 ST-Link 升级固件需要拉高 BOOT0 时，主控也会一起进入系统存储器启动，程序停止。</p>
+    <div class="fix"><b>不改也能用</b>（升级时不跑主控），想干净就在原理图里把 U5 的拆成独立网络。</div>
+  </div>
+
+  <div class="card low">
+    <h3>12. 无 ESD 保护、无电源反接保护</h3>
+    <p>USB 的 D+/D− 经 10Ω 直接进 MCU，没有 TVS；12V 从 DC 座直接进 MP2315，没有反接保护。</p>
+    <div class="fix">教学板可以不加，但学生反复插拔 USB、接反电源的概率不低。加两颗 TVS（如 USBLC6-2SC6）和一个 P-MOS 反接保护，成本不到 2 元。</div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="badge b-p2">BOM</span>缺料号</h2>
+  <p>以下器件的 LCSC 料号为空白，出 BOM 时会缺失：</p>
+  <table>
+    <thead><tr><th style="width:14%">位号</th><th style="width:40%">器件</th><th>处理</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">U1</td><td>STM32F103C8T6</td><td>补料号</td></tr>
+      <tr><td class="mono">U2</td><td>3.6A 电机驱动（DRV8871 类）</td><td>补料号</td></tr>
+      <tr><td class="mono">U3</td><td>MP2315S</td><td>补料号</td></tr>
+      <tr><td class="mono">U4</td><td>3.3V / 1A LDO</td><td>补料号</td></tr>
+      <tr><td class="mono">U5</td><td>STM32F103CBT6</td><td>补料号</td></tr>
+      <tr><td class="mono">R3</td><td>30kΩ</td><td>补值 + 料号</td></tr>
+      <tr><td class="mono">C20~C23</td><td>LDO 滤波电容</td><td>补值 + 料号</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2><span class="badge b-p2">✓</span>核对通过的部分</h2>
+  <ul class="plain">
+    <li><b>晶振网络已拆开</b> —— OSC_IN/OSC_OUT 和 OSC_IN_ST/OSC_OUT_ST 各 3 个点，正常</li>
+    <li><b>SWD 链路完整</b> —— U1 的 PA13/PA14 经 R30/R34（22Ω）接到 U5，可烧录</li>
+    <li><b>USB 数据通路正确</b> —— Type-C → 10Ω 串阻 → MCU，CC1/CC2 各 5.1kΩ 下拉</li>
+    <li><b>电机驱动完整</b> —— IN1/IN2 到 U1，OUT1/OUT2 到 H4，ILIM 用 R3(30kΩ) 限流约 0.82A</li>
+    <li><b>编码器接口</b> —— PA0/PA1 到 H4.5/H4.6</li>
+    <li><b>I2C 接口</b> —— PB6/PB7 到 H2</li>
+    <li><b>去耦骨架</b> —— U1 四组、U5 五组 100nF 都在（P1 里说的 C2-C8、C22/C23/C27-C30）</li>
+  </ul>
+</section>
+
+<footer>
+  <span>原理图审查报告 · motor_drive</span>
+  <span>按 PCB 网络表逐点核对</span>
+</footer>
+
+</div>
+</body>
+</html>

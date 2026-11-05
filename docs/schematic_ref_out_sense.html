@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>参考原理图 · OUT 侧采样</title>
+<style>
+:root{
+  --bg:#FAF7F2; --surface:#FFFFFF; --ink:#2B2723; --ink-soft:#6E6559;
+  --ink-light:#9A9086; --line:#E6DFD4; --line-soft:#F0EAE0;
+  --accent:#B5713F; --accent-soft:#F4E9DE;
+  --green:#4F6B5B; --green-soft:#E8EDE9;
+  --red:#A8503F; --red-soft:#F6E7E3;
+  --code-bg:#F7F3EC;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:"PingFang SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;font-size:15px;line-height:1.8;padding:0 24px 100px}
+.wrap{max-width:940px;margin:0 auto}
+header{padding:70px 0 42px;border-bottom:1px solid var(--line)}
+.kicker{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:18px}
+h1{font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-size:32px;line-height:1.35;font-weight:600;letter-spacing:-.5px;margin-bottom:12px}
+.sub{font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-size:15.5px;color:var(--ink-soft);line-height:1.75;max-width:680px}
+.meta{display:flex;flex-wrap:wrap;gap:26px;margin-top:26px;font-size:13px;color:var(--ink-light)}
+.meta b{color:var(--ink-soft);font-weight:500}
+
+section{padding:48px 0;border-bottom:1px solid var(--line-soft)}
+section:last-of-type{border-bottom:none}
+h2{font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-size:21px;font-weight:600;display:flex;align-items:baseline;gap:12px;margin-bottom:8px}
+.n{font-size:12px;color:var(--accent);font-family:Consolas,monospace;letter-spacing:.1em}
+.lead{color:var(--ink-light);font-size:13.5px;margin-bottom:18px}
+h3{font-size:14.5px;font-weight:600;margin:22px 0 8px}
+p{color:var(--ink-soft);margin-bottom:12px;font-size:14.5px}
+p strong{color:var(--ink);font-weight:600}
+
+table{width:100%;border-collapse:collapse;margin:10px 0 14px;font-size:13px}
+th{text-align:left;font-weight:600;font-size:11.5px;letter-spacing:.05em;color:var(--ink-light);text-transform:uppercase;padding:0 12px 8px 0;border-bottom:1px solid var(--line)}
+td{padding:9px 12px 9px 0;border-bottom:1px solid var(--line-soft);color:var(--ink-soft);vertical-align:top}
+td:first-child{color:var(--ink);font-weight:500;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+.mono{font-family:Consolas,"SF Mono","JetBrains Mono",monospace;font-size:12px;color:#8A5B36}
+
+pre{background:var(--code-bg);border:1px solid var(--line-soft);border-radius:5px;padding:20px 22px;overflow-x:auto;font-family:Consolas,"SF Mono","Courier New",monospace;font-size:12.5px;line-height:1.55;color:#332F28;margin:12px 0 16px}
+
+.note{border-left:2px solid var(--accent);background:var(--accent-soft);padding:14px 18px;margin:16px 0;font-size:13.5px;color:#6B4E33;border-radius:0 3px 3px 0}
+.warn{border-left:2px solid var(--red);background:var(--red-soft);padding:14px 18px;margin:16px 0;font-size:13.5px;color:#7A3A2E;border-radius:0 3px 3px 0}
+.ok{border-left:2px solid var(--green);background:var(--green-soft);padding:14px 18px;margin:16px 0;font-size:13.5px;color:#3D5245;border-radius:0 3px 3px 0}
+.note b,.warn b,.ok b{font-weight:600}
+
+footer{padding-top:40px;font-size:12.5px;color:var(--ink-light);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+@media (max-width:760px){body{padding:0 16px 70px}h1{font-size:25px}header{padding:48px 0 32px}section{padding:38px 0}pre{font-size:11px;padding:14px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="kicker">Reference Schematic</div>
+  <h1>参考原理图<br>OUT 侧采样方案</h1>
+  <p class="sub">
+    电流采样点放在负载侧，不改动 DRV8871 的接地方式，地平面保持完整。
+    电机与加热各一路双向电流检测。
+  </p>
+  <div class="meta">
+    <span><b>电流芯片</b> INA181A2（双向）</span>
+    <span><b>电压芯片</b> MCP6002（差分）</span>
+    <span><b>日期</b> 2026-11-05</span>
+  </div>
+</header>
+
+<section>
+  <h2><span class="n">01</span>信号总览</h2>
+  <p class="lead">五路模拟量 + 两路 PWM，引脚分配如下。</p>
+
+  <table>
+    <thead><tr><th style="width:14%">引脚</th><th style="width:24%">信号</th><th style="width:26%">来源</th><th>量程</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">PA2</td><td>电机电压</td><td>MCP6002 差分输出</td><td>±12 V</td></tr>
+      <tr><td class="mono">PA3</td><td>电机电流</td><td>INA181（电机支路）</td><td>±3.3 A</td></tr>
+      <tr><td class="mono">PA4</td><td>温度</td><td>NTC 分压</td><td>−20~150 °C</td></tr>
+      <tr><td class="mono">PA5</td><td>加热电流</td><td>INA181（加热支路）</td><td>0~3.3 A</td></tr>
+      <tr><td class="mono">PB1</td><td>加热电压</td><td>分压 + RC</td><td>0~12 V</td></tr>
+      <tr><td class="mono">PA6/PA7</td><td>电机 PWM</td><td>TIM3_CH1/CH2</td><td>—</td></tr>
+      <tr><td class="mono">PB0</td><td>加热 PWM</td><td>TIM3_CH3</td><td>—</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2><span class="n">02</span>电机电流 · INA181 双向</h2>
+  <p class="lead">采样电阻串在 OUT1 与电机之间，放大器跨接电阻两端。</p>
+
+<pre>                    ┌─────────── U7 INA181A2 ───────────┐
+                    │                                    │
+    U2.OUT1 ──┬─────┤ 3  IN+                    6  VS ───┼──── +3V3
+              │     │                                    │
+         [R41 10mΩ] │ 4  IN−                    2  GND ──┼──── GND
+              │     │                                    │
+              │     │ 1  REF ── 1.65V          5  OUT ──┼──┬─ PA3
+              │     │                                    │  │
+              │     └────────────────────────────────────┘  │
+              │                                              │
+    MOTOR+ ───┴────────────────────────────────         [1kΩ]
+                                                             │
+                                                        ┌────┴────┐
+                                                        │ 100nF   │
+                                                        └────┬────┘
+                                                            GND</pre>
+
+  <table>
+    <thead><tr><th style="width:16%">引脚</th><th style="width:20%">名称</th><th>接到</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">1</td><td>REF</td><td><b>1.65V</b>（双向输出中点）</td></tr>
+      <tr><td class="mono">2</td><td>GND</td><td>GND</td></tr>
+      <tr><td class="mono">3</td><td><b>IN+</b></td><td>R41 的 <b>OUT1 侧</b></td></tr>
+      <tr><td class="mono">4</td><td><b>IN−</b></td><td>R41 的 <b>电机侧</b></td></tr>
+      <tr><td class="mono">5</td><td>OUT</td><td>→ 1kΩ → PA3（并 100nF 到地）</td></tr>
+      <tr><td class="mono">6</td><td>VS</td><td>+3V3</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    <b>方向约定：</b>正转电流 OUT1 → 电机，IN+ 高于 IN−，输出 &gt; 1.65V；反转反之。<br>
+    <b>换算：</b><span class="mono">I = (Vout − 1.65) / 50 / 0.01</span>，结果带正负号。
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">03</span>加热驱动 + 电流</h2>
+  <p class="lead">加热是单向负载，采样电阻放在 MOS 源极（低边），共模接近 0V，不受 PWM 跳变影响。</p>
+
+<pre>    +12V ──── J2.1
+                │
+           [加热棒]
+                │
+             J2.2
+                │
+          Q2.D (3)                    ┌──── U8 INA181A2 ────┐
+                │                     │                     │
+          Q2.S (2) ──┬────────────────┤ 3  IN+      6  VS ──┼── +3V3
+                     │                │                     │
+                [R42 10mΩ]            │ 4  IN−      2  GND ─┼── GND
+                     │                │                     │
+                    GND               │ 1  REF     5  OUT ──┼──┬─ PA5
+                                      └─────────────────────┘  │
+                                                               │
+    PB0 ──[Rg 100Ω]── Q2.G (1)                             [1kΩ]
+              │                                                │
+          [Rgs 10k]                                       [100nF]
+              │                                                │
+             GND                                              GND</pre>
+
+  <table>
+    <thead><tr><th style="width:16%">引脚</th><th style="width:20%">名称</th><th>接到</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">1</td><td>REF</td><td>1.65V（与电机那路共用）</td></tr>
+      <tr><td class="mono">2</td><td>GND</td><td>GND</td></tr>
+      <tr><td class="mono">3</td><td>IN+</td><td>R42 的 <b>MOS 源极侧</b></td></tr>
+      <tr><td class="mono">4</td><td>IN−</td><td>R42 的 <b>GND 侧</b></td></tr>
+      <tr><td class="mono">5</td><td>OUT</td><td>→ 1kΩ → PA5（并 100nF）</td></tr>
+      <tr><td class="mono">6</td><td>VS</td><td>+3V3</td></tr>
+    </tbody>
+  </table>
+
+  <div class="ok">
+    <b>加热为什么用低边：</b>MOS 源极本来就接地，串个电阻只把这一点抬高 10mV，
+    对整个地平面没有任何影响，也不涉及地分割。而共模接近 0V，INA181 工作最舒服。
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">04</span>电机电压 · 差分放大</h2>
+  <p class="lead">H 桥输出可正可负，用差分放大 + 1.65V 偏置映射到 0~3.3V。</p>
+
+<pre>   U2.OUT1 ──[R46 100k]──┬──────(−) 2
+                         │            ┌──── 1  OUT ──┬── PA2
+                    [R47 13k]──┬──────┘              │
+                                │                  [1kΩ]
+                                └──── 1  OUT ──┐     │
+                                                │  [100nF]
+                                                 │     │
+   U2.OUT2 ──[R48 100k]──┬──────(+) 3          (同上)  GND
+                         │
+                    [R49 13k]── V_REF_1V65
+
+   U9 MCP6002：8 → +3V3    4 → GND      C: 8↔4 跨 100nF
+
+   ┌── 1.65V 参考 ──────────────┐
+   │  +3V3 ──[R50 10k]──┬── 1.65V
+   │                 [R51 10k]
+   │                    GND
+   │  C: 1.65V ↔ GND 跨 100nF
+   └────────────────────────────┘</pre>
+
+  <p><b>增益</b> = R47/R46 = 13k/100k = <b>0.13</b></p>
+
+<pre>V(PA2) = 0.13 × (OUT2 − OUT1) + 1.65
+
+正转满速 → 3.21 V
+零电压   → 1.65 V
+反转满速 → 0.09 V
+
+反算：V_motor = (V(PA2) − 1.65) / 0.13</pre>
+
+  <div class="warn">
+    <b>U9 必须用轨到轨运放。</b>MCP6002、SGM8542 都可以，<b>LM358 不行</b>——
+    它在 3.3V 供电下输出最高只有 1.8V，正转时信号被削平。
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">05</span>加热电压 · 分压</h2>
+  <p class="lead">测 Q2 漏极对地电压，滤波后送 ADC。</p>
+
+<pre>   J2.2 (Q2 漏极) ──[R43 33k]──┬──[R52 10k]──┬── PB1
+                               │             │
+                          [R44 11k]      [C36 1μF]
+                               │             │
+                              GND           GND</pre>
+
+<pre>V_drain = V(ADC) × 4
+V_heat  = 12 − V_drain = 12 × D（占空比）</pre>
+
+  <p>RC 时间常数 = 10k × 1μF = <b>10ms</b>，远大于 1kHz PWM 的 1ms 周期，滤波后是平滑直流。</p>
+</section>
+
+<section>
+  <h2><span class="n">06</span>温度 · NTC 接口</h2>
+
+<pre>   +3V3 ──[R45 10k ±1%]──┬── PA4
+                         │
+                    [C34 100nF]
+                         │
+                        GND
+                         │
+   J3.1 ─────────────────┘   ← 接 NTC 一端
+   J3.2 ──── GND              ← 接 NTC 另一端</pre>
+
+  <p>NTC 是<b>外接探头</b>（10kΩ B=3950，带引线），不焊在板上。</p>
+
+<pre>R_ntc = 10k × Vadc / (3.3 − Vadc)
+T(°C) = 1/(1/298.15 + ln(R_ntc/10000)/3950) − 273.15</pre>
+</section>
+
+<section>
+  <h2><span class="n">07</span>器件清单</h2>
+
+  <table>
+    <thead><tr><th style="width:12%">位号</th><th style="width:30%">器件</th><th style="width:16%">封装</th><th style="width:8%">数量</th><th>备注</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">U7 / U8</td><td><b>INA181A2</b>（双向，×50）</td><td>SOT-23-6</td><td>2</td><td>电机 / 加热电流</td></tr>
+      <tr><td class="mono">U9</td><td><b>MCP6002</b> 轨到轨运放</td><td>SOP-8</td><td>1</td><td>电机电压差分</td></tr>
+      <tr><td class="mono">Q2</td><td>AO3400（N-MOS）</td><td>SOT-23</td><td>1</td><td>加热开关</td></tr>
+      <tr><td class="mono">R41 / R42</td><td>10mΩ ±1% 1W</td><td>1206</td><td>2</td><td>采样电阻（合金）</td></tr>
+      <tr><td class="mono">R46 / R48</td><td>100kΩ ±1%</td><td>0805</td><td>2</td><td>差分输入</td></tr>
+      <tr><td class="mono">R47 / R49</td><td>13kΩ ±1%</td><td>0805</td><td>2</td><td>差分反馈</td></tr>
+      <tr><td class="mono">R50 / R51</td><td>10kΩ ±1%</td><td>0805</td><td>2</td><td>1.65V 分压</td></tr>
+      <tr><td class="mono">R43 / R44</td><td>33kΩ / 11kΩ ±1%</td><td>0805</td><td>2</td><td>加热电压分压</td></tr>
+      <tr><td class="mono">R45</td><td>10kΩ ±1%</td><td>0805</td><td>1</td><td>NTC 上拉</td></tr>
+      <tr><td class="mono">R52</td><td>10kΩ</td><td>0805</td><td>1</td><td>RC 滤波</td></tr>
+      <tr><td class="mono">Rg / Rgs</td><td>100Ω / 10kΩ</td><td>0805</td><td>2</td><td>MOS 驱动</td></tr>
+      <tr><td class="mono">输出 RC</td><td>1kΩ + 100nF</td><td>0805</td><td>3 组</td><td>PA2 / PA3 / PA5 滤波</td></tr>
+      <tr><td class="mono">C32–C37</td><td>100nF / 1μF</td><td>0805</td><td>6</td><td>去耦与滤波</td></tr>
+      <tr><td class="mono">J2 / J3</td><td>2P 接口</td><td>XH2.54</td><td>2</td><td>加热棒 / NTC</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2><span class="n">08</span>关键参数速查</h2>
+
+  <table>
+    <thead><tr><th style="width:22%">项目</th><th style="width:26%">值</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>电流增益</td><td>50（INA181A2）</td><td>10mΩ × 1A × 50 = 0.5V</td></tr>
+      <tr><td>电流量程</td><td>±3.3 A</td><td>输出 1.65 ± 1.65V</td></tr>
+      <tr><td>电流分辨率</td><td>≈ 1.6 mA</td><td>0.8mV / 50 / 0.01</td></tr>
+      <tr><td>1.65V 精度</td><td>取决于 10k 电阻</td><td>1% 电阻 → ±1.6%</td></tr>
+      <tr><td>电压增益</td><td>0.13</td><td>±12V → 0~3.3V</td></tr>
+      <tr><td>加热 PWM</td><td>1 kHz</td><td>TIM3_CH3，PB0</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    <b>1.65V 三个地方共用：</b>电机电压偏置（R49）、电机电流 REF、加热电流 REF。
+    只要这一处准，三个通道的零点就都准。建议用 <b>1% 电阻</b>，或者用 TL431 产生更稳的基准。
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">09</span>低边方案（改地）· 备选电路</h2>
+  <p class="lead">采样点放在 DRV8871 的接地脚，需要断开原有接地并串入电阻。仅供对比参考。</p>
+
+<pre>                        ┌──────── U7 INA180A3 ────────┐
+                        │ 5  VS ── +3V3              │
+                        │ 2  GND ── GND              │
+                        │                             │
+      U2.GND (1/7/9) ───┤ 3  IN+                      │
+            │           │                             │
+       [R41 10mΩ]       │ 4  IN− ── GND              │
+            │           │                             │
+           GND          │ 1  OUT ──┬── PA3            │
+                        └──────────┼─────────────────┘
+                                   │
+                              [1kΩ]│
+                                   ├──[100nF]── GND</pre>
+
+  <h3>INA180A3 引脚（单向）</h3>
+  <table>
+    <thead><tr><th style="width:12%">脚</th><th style="width:20%">名称</th><th>接到</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">1</td><td>OUT</td><td>→ 1kΩ → PA3</td></tr>
+      <tr><td class="mono">2</td><td>GND</td><td>GND</td></tr>
+      <tr><td class="mono">3</td><td>IN+</td><td>R41 的 <b>U2 GND 侧</b></td></tr>
+      <tr><td class="mono">4</td><td>IN−</td><td>R41 的 <b>GND 侧</b></td></tr>
+      <tr><td class="mono">5</td><td>VS</td><td>+3V3</td></tr>
+    </tbody>
+  </table>
+
+  <p><b>注意：INA180 没有 REF 引脚</b>，是单向输出（0~VS）。不需要 1.65V 偏置。</p>
+
+  <h3>改动步骤</h3>
+  <ul class="check" style="list-style:none;margin:10px 0">
+    <li style="position:relative;padding-left:26px;margin-bottom:8px;color:#6E6559;font-size:14px"><span style="position:absolute;left:0;color:#B5713F">□</span>断开 U2 的 1 / 7 / 9 脚与 GND 的所有连接</li>
+    <li style="position:relative;padding-left:26px;margin-bottom:8px;color:#6E6559;font-size:14px"><span style="position:absolute;left:0;color:#B5713F">□</span>这三个脚全部接到 R41 高端（<b>必须三个都接</b>，少一个会导致电流分流、读数偏小）</li>
+    <li style="position:relative;padding-left:26px;margin-bottom:8px;color:#6E6559;font-size:14px"><span style="position:absolute;left:0;color:#B5713F">□</span>R41 另一端接 GND</li>
+    <li style="position:relative;padding-left:26px;margin-bottom:8px;color:#6E6559;font-size:14px"><span style="position:absolute;left:0;color:#B5713F">□</span>U7 的 3 脚接 R41 高端，4 脚接 R41 低端</li>
+  </ul>
+
+  <div class="warn">
+    <b>PCB 影响：</b>DRV8871 的三个接地脚不再直接压在地平面上，
+    整个功率地要重新规划。<b>地平面会被"切开"</b>，
+    处理不好会导致加热一开 ADC 就跳、电机一转串口就乱。
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">10</span>两个方案的完整对比</h2>
+
+  <table>
+    <thead>
+      <tr><th style="width:26%">维度</th><th style="width:37%">低边（改地）</th><th style="width:37%">OUT 侧（不改地）</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><b>采样点</b></td><td>DRV8871 的 GND 脚</td><td>OUT1 与电机之间</td></tr>
+      <tr><td><b>共模电压</b></td><td class="mono">≈ 0 V（干净）</td><td class="mono">0~12V PWM 跳变</td></tr>
+      <tr><td><b>电流方向</b></td><td>始终单向（都流回地）</td><td><b>正反转会反向</b></td></tr>
+      <tr><td><b>检测芯片</b></td><td>INA180A3（单向，3 元）</td><td><b>INA181A2（双向，3 元）</b></td></tr>
+      <tr><td><b>需要 REF</b></td><td>不需要</td><td><b>需要 1.65V</b></td></tr>
+      <tr><td><b>测到的是什么</b></td><td>电机电流 <b>+ 芯片自身电流</b>（约 10mA / 1%）</td><td><b>纯电机电流</b></td></tr>
+      <tr><td><b>ADC 抖动</b></td><td>&lt; 1%（共模稳定）</td><td>3~5%（PWM 共模跳变）</td></tr>
+      <tr><td><b>要不要改地</b></td><td><b>要</b></td><td><b>不要</b></td></tr>
+      <tr><td><b>PCB 难度</b></td><td>高（功率地重走、地平面受影响）</td><td>低（地平面完整）</td></tr>
+      <tr><td><b>原理图改动</b></td><td>删旧接地 + 重连 3 个脚</td><td>只加器件，原图不动</td></tr>
+      <tr><td><b>与芯片限流的配合</b></td><td>无影响</td><td>无影响</td></tr>
+    </tbody>
+  </table>
+
+  <p><b>加热那一部分两个方案完全相同</b>（都是 MOS 源极低边采样），只有电机的电流检测方式不同。</p>
+</section>
+
+<section>
+  <h2><span class="n">11</span>选择建议</h2>
+
+  <div class="ok">
+    <b>教学用途（精度 1~2% 可接受）→ 选 OUT 侧。</b><br>
+    不动地，PCB 干净，原理图改动小。抖动可以用软件平均压到 1~2%。
+  </div>
+
+  <div class="note">
+    <b>如果要更干净的电流波形（比如演示电流环效果）→ 选低边。</b><br>
+    共模 0V，读数稳定。代价是 PCB 的功率地要重做，
+    而且 DRV8871 到地平面之间多了一段走线，需要仔细处理。
+  </div>
+
+  <h3>折中方案</h3>
+  <p>如果哪天觉得 OUT 侧的抖动太烦，<b>可以只把 U7 换成 INA240A2</b>（SOIC-8，12 元，CMRR 132dB）。
+    电路拓扑不变，只换一颗芯片，抖动能降到 1% 以内——这是我最推荐的升级路径。</p>
+
+  <table>
+    <thead><tr><th style="width:24%">场景</th><th style="width:26%">推荐</th><th>理由</th></tr></thead>
+    <tbody>
+      <tr><td>教学演示</td><td><b>OUT 侧 + INA181</b></td><td>便宜、不改地、够用</td></tr>
+      <tr><td>要做电流环</td><td>OUT 侧 + <b>INA240</b></td><td>换一颗芯片就够，不动 PCB 拓扑</td></tr>
+      <tr><td>追求最优精度</td><td>低边 + INA180</td><td>共模最干净，但 PCB 麻烦</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<footer>
+  <span>参考原理图 · OUT 侧采样 · 2026-11-05</span>
+  <span>INA181A2 · MCP6002 · AO3400</span>
+</footer>
+
+</div>
+</body>
+</html>
