@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>参考原理图 · OUT 侧采样</title>
+<title>参考原理图 · 采样方案（当前：低边对地）</title>
 <style>
 :root{
   --bg:#FAF7F2; --surface:#FFFFFF; --ink:#2B2723; --ink-soft:#6E6559;
@@ -48,6 +48,13 @@ pre{background:var(--code-bg);border:1px solid var(--line-soft);border-radius:5p
 
 footer{padding-top:40px;font-size:12.5px;color:var(--ink-light);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
 @media (max-width:760px){body{padding:0 16px 70px}h1{font-size:25px}header{padding:48px 0 32px}section{padding:38px 0}pre{font-size:11px;padding:14px}}
+
+figure.sch{margin:18px 0 20px;background:#FFFDF9;border:1px solid var(--line);border-radius:6px;padding:16px 14px 8px;overflow-x:auto}
+figure.sch svg{display:block;width:100%;height:auto;min-width:620px}
+figure.sch figcaption{font-size:12px;color:var(--ink-light);text-align:center;padding-top:9px;margin-top:8px;border-top:1px solid var(--line-soft)}
+.tag-new,.tag-old{font-size:10.5px;font-weight:500;letter-spacing:.02em;padding:2px 7px;border-radius:3px;vertical-align:middle;margin-left:4px}
+.tag-new{background:var(--green-soft);color:var(--green)}
+.tag-old{background:#F2EEE7;color:var(--ink-light)}
 </style>
 </head>
 <body>
@@ -55,13 +62,13 @@ footer{padding-top:40px;font-size:12.5px;color:var(--ink-light);display:flex;jus
 
 <header>
   <div class="kicker">Reference Schematic</div>
-  <h1>参考原理图<br>OUT 侧采样方案</h1>
+  <h1>参考原理图<br>采样与驱动电路</h1>
   <p class="sub">
-    电流采样点放在负载侧，不改动 DRV8871 的接地方式，地平面保持完整。
-    电机与加热各一路双向电流检测。
+    电机电流按低边对地方式采样（实物已改），加热侧同构；
+    电压用差分放大与分压，温度走 NTC 分压。原 OUT 侧方案作为对照留在第 09 节。
   </p>
   <div class="meta">
-    <span><b>电流芯片</b> INA181A2（双向）</span>
+    <span><b>电流芯片</b> INA180A3（单向 · 低边）</span>
     <span><b>电压芯片</b> MCP6002（差分）</span>
     <span><b>日期</b> 2026-11-05</span>
   </div>
@@ -75,9 +82,9 @@ footer{padding-top:40px;font-size:12.5px;color:var(--ink-light);display:flex;jus
     <thead><tr><th style="width:14%">引脚</th><th style="width:24%">信号</th><th style="width:26%">来源</th><th>量程</th></tr></thead>
     <tbody>
       <tr><td class="mono">PA2</td><td>电机电压</td><td>MCP6002 差分输出</td><td>±12 V</td></tr>
-      <tr><td class="mono">PA3</td><td>电机电流</td><td>INA181（电机支路）</td><td>±3.3 A</td></tr>
+      <tr><td class="mono">PA3</td><td>电机电流</td><td>INA180（低边）</td><td>0~1.5 A</td></tr>
       <tr><td class="mono">PA4</td><td>温度</td><td>NTC 分压</td><td>−20~150 °C</td></tr>
-      <tr><td class="mono">PA5</td><td>加热电流</td><td>INA181（加热支路）</td><td>0~3.3 A</td></tr>
+      <tr><td class="mono">PA5</td><td>加热电流</td><td>INA180（低边）</td><td>0~1.5 A</td></tr>
       <tr><td class="mono">PB1</td><td>加热电压</td><td>分压 + RC</td><td>0~12 V</td></tr>
       <tr><td class="mono">PA6/PA7</td><td>电机 PWM</td><td>TIM3_CH1/CH2</td><td>—</td></tr>
       <tr><td class="mono">PB0</td><td>加热 PWM</td><td>TIM3_CH3</td><td>—</td></tr>
@@ -86,41 +93,30 @@ footer{padding-top:40px;font-size:12.5px;color:var(--ink-light);display:flex;jus
 </section>
 
 <section>
-  <h2><span class="n">02</span>电机电流 · INA181 双向</h2>
-  <p class="lead">采样电阻串在 OUT1 与电机之间，放大器跨接电阻两端。</p>
+  <h2><span class="n">02</span>电机电流 · INA180 低边<span class="tag-new">当前方案</span></h2>
+  <p class="lead">采样电阻串在 DRV8871 的地回流上，放大器跨接电阻两端，共模电压接近 0V。</p>
 
-<pre>                    ┌─────────── U7 INA181A2 ───────────┐
-                    │                                    │
-    U2.OUT1 ──┬─────┤ 3  IN+                    6  VS ───┼──── +3V3
-              │     │                                    │
-         [R41 10mΩ] │ 4  IN−                    2  GND ──┼──── GND
-              │     │                                    │
-              │     │ 1  REF ── 1.65V          5  OUT ──┼──┬─ PA3
-              │     │                                    │  │
-              │     └────────────────────────────────────┘  │
-              │                                              │
-    MOTOR+ ───┴────────────────────────────────         [1kΩ]
-                                                             │
-                                                        ┌────┴────┐
-                                                        │ 100nF   │
-                                                        └────┬────┘
-                                                            GND</pre>
+  <figure class="sch"><svg viewBox="0 0 860 282" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" role="img"><rect x="0" y="0" width="860" height="282" fill="#FFFDF9"/><rect x="330" y="78" width="180" height="148" rx="2.5" fill="#FFFDF9" stroke="#C0B2A0" stroke-width="1.6"/><text x="432" y="100" font-size="13" fill="#3A342D" text-anchor="middle" font-weight="600" font-family="Consolas, 'SF Mono', 'JetBrains Mono', monospace">U7</text><text x="432" y="116" font-size="10" fill="#988D7F" text-anchor="middle" font-family="Consolas, 'SF Mono', 'JetBrains Mono', monospace">INA180A3</text><text x="344" y="116" font-size="11" fill="#3A342D" text-anchor="start" font-family="Consolas, 'SF Mono', 'JetBrains Mono', monospace">IN+</text><text x="344" y="186" font-size="11" fill="#3A342D" text-anchor="start" font-family="Consolas, 'SF Mono', 'JetBrains Mono', monospace">IN−</text><text x="352" y="96" font-size="11" fill="#3A342D" text-anchor="start" font-family="Consolas, 'SF Mono', 'JetBrains Mono', monospace">VS</text><text x="352" y="220" font-size="11" fill="#3A342D" text-anchor="start" font-family="Consolas, 'SF Mono', 'JetBrains Mono', monospace">GND</text><text x="496" y="116" font-size="11" fill="#3A342D" text-anchor="end" font-family="Consolas, 'SF Mono', 'JetBrains Mono', monospace">OUT</text><text x="318" y="108" font-size="10" fill="#B5713F" text-anchor="end" font-family="Consolas, 'SF Mono', 'JetBrains Mono', monospace">1</text><text x="318" y="178" font-size="10" fill="#B5713F" text-anchor="end" font-family="Consolas, 'SF Mono', 'JetBrains Mono', monospace">3</text><text x="522" y="108" font-size="10" fill="#B5713F" text-anchor="start" font-family="Consolas, 'SF Mono', 'JetBrains Mono', monospace">4</text><text x="384" y="72" font-size="10" fill="#B5713F" text-anchor="end" font-family="Consolas, 'SF Mono', 'JetBrains Mono', monospace">5</text><text x="384" y="240" font-size="10" fill="#B5713F" text-anchor="end" font-family="Consolas, 'SF Mono', 'JetBrains Mono', monospace">2</text><path d="M330 112 L168 112" stroke="#8C8175" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M330 182 L268 182 L268 252 L392 252" stroke="#8C8175" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M510 112 L551 112" stroke="#8C8175" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M392 78 L392 46" stroke="#8C8175" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M392 226 L392 252" stroke="#8C8175" stroke-width="1.6" fill="none" stroke-linecap="round"/><rect x="228.0" y="132.0" width="20" height="52" rx="2.5" fill="#FFFFFF" stroke="#C0B2A0" stroke-width="1.6"/><path d="M238 112 L238 132" stroke="#8C8175" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M238 184 L238 206" stroke="#8C8175" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="238" cy="112" r="3.2" fill="#8C8175"/><path d="M238 206 L238 213" stroke="#5A7263" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M226 213 L250 213" stroke="#5A7263" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M230.5 218.5 L245.5 218.5" stroke="#5A7263" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M235 224 L241 224" stroke="#5A7263" stroke-width="1.6" fill="none" stroke-linecap="round"/><text x="252" y="152" font-size="11" fill="#3A342D" text-anchor="start" font-weight="600" font-family="Consolas, 'SF Mono', 'JetBrains Mono', monospace">R41</text><text x="252" y="168" font-size="10" fill="#988D7F" text-anchor="start" font-family="Consolas, 'SF Mono', 'JetBrains Mono', monospace">10mΩ 1W</text><path d="M47.8 101.5 H159 L168 112 L159 122.5 H47.8 Z" fill="#F6EDE3" stroke="#CDA079" stroke-width="1.2"/><text x="103.4" y="116" font-size="11.5" fill="#8A5B36" text-anchor="middle" font-family="Consolas, 'SF Mono', 'JetBrains Mono', monospace">I_MOTOR_SENSE</text><path d="M392 46 L392 35" stroke="#5A7263" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M382 35 L402 35" stroke="#5A7263" stroke-width="2.0" fill="none" stroke-linecap="round"/><text x="392" y="29" font-size="11" fill="#5A7263" text-anchor="middle" font-weight="600" font-family="Consolas, 'SF Mono', 'JetBrains Mono', monospace">+3V3</text><path d="M392 252 L392 259" stroke="#5A7263" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M380 259 L404 259" stroke="#5A7263" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M384.5 264.5 L399.5 264.5" stroke="#5A7263" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M389 270 L395 270" stroke="#5A7263" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="392" cy="252" r="3.2" fill="#8C8175"/><rect x="551.0" y="102.0" width="50" height="20" rx="2.5" fill="#FFFFFF" stroke="#C0B2A0" stroke-width="1.6"/><path d="M601 112 L700 112" stroke="#8C8175" stroke-width="1.6" fill="none" stroke-linecap="round"/><circle cx="640" cy="112" r="3.2" fill="#8C8175"/><text x="576" y="96" font-size="11" fill="#3A342D" text-anchor="middle" font-weight="600" font-family="Consolas, 'SF Mono', 'JetBrains Mono', monospace">R53</text><text x="576" y="132" font-size="10" fill="#988D7F" text-anchor="middle" font-family="Consolas, 'SF Mono', 'JetBrains Mono', monospace">1k</text><path d="M640 112 L640 150.5" stroke="#8C8175" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M627.0 150.5H653.0" stroke="#C0B2A0" stroke-width="2.4" fill="none"/><path d="M627.0 157.5H653.0" stroke="#C0B2A0" stroke-width="2.4" fill="none"/><path d="M640 157.5 L640 196" stroke="#8C8175" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M640 196 L640 203" stroke="#5A7263" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M628 203 L652 203" stroke="#5A7263" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M632.5 208.5 L647.5 208.5" stroke="#5A7263" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M637 214 L643 214" stroke="#5A7263" stroke-width="1.6" fill="none" stroke-linecap="round"/><text x="656" y="150" font-size="11" fill="#3A342D" text-anchor="start" font-weight="600" font-family="Consolas, 'SF Mono', 'JetBrains Mono', monospace">C37</text><text x="656" y="166" font-size="10" fill="#988D7F" text-anchor="start" font-family="Consolas, 'SF Mono', 'JetBrains Mono', monospace">100nF</text><path d="M746.2 101.5 H709 L700 112 L709 122.5 H746.2 Z" fill="#F6EDE3" stroke="#CDA079" stroke-width="1.2"/><text x="727.6" y="116" font-size="11.5" fill="#8A5B36" text-anchor="middle" font-family="Consolas, 'SF Mono', 'JetBrains Mono', monospace">PA3</text></svg><figcaption>图 02 · 电机电流采样：U2 的三个地脚经 R41 回到 GND，INA180 取 R41 两端压差</figcaption></figure>
 
   <table>
     <thead><tr><th style="width:16%">引脚</th><th style="width:20%">名称</th><th>接到</th></tr></thead>
     <tbody>
-      <tr><td class="mono">1</td><td>REF</td><td><b>1.65V</b>（双向输出中点）</td></tr>
+      <tr><td class="mono">1</td><td><b>IN+</b></td><td>R41 的 <b>U2 地脚侧</b>（网络 I_MOTOR_SENSE）</td></tr>
       <tr><td class="mono">2</td><td>GND</td><td>GND</td></tr>
-      <tr><td class="mono">3</td><td><b>IN+</b></td><td>R41 的 <b>OUT1 侧</b></td></tr>
-      <tr><td class="mono">4</td><td><b>IN−</b></td><td>R41 的 <b>电机侧</b></td></tr>
-      <tr><td class="mono">5</td><td>OUT</td><td>→ 1kΩ → PA3（并 100nF 到地）</td></tr>
-      <tr><td class="mono">6</td><td>VS</td><td>+3V3</td></tr>
+      <tr><td class="mono">3</td><td><b>IN−</b></td><td>R41 的 <b>GND 侧</b></td></tr>
+      <tr><td class="mono">4</td><td>OUT</td><td>→ 1kΩ → PA3（并 100nF 到地）</td></tr>
+      <tr><td class="mono">5</td><td>VS</td><td>+3V3</td></tr>
     </tbody>
   </table>
 
   <div class="note">
-    <b>方向约定：</b>正转电流 OUT1 → 电机，IN+ 高于 IN−，输出 &gt; 1.65V；反转反之。<br>
-    <b>换算：</b><span class="mono">I = (Vout − 1.65) / 50 / 0.01</span>，结果带正负号。
+    <b>INA180 没有 REF 引脚</b>，单向输出 0~VS，不需要 1.65V 偏置。<br>
+    <b>换算：</b><span class="mono">I = Vout / 100 / 0.01 = Vout × 1 A/V</span>，量程 0~1.5A（对应 R3 = 16kΩ）。
+  </div>
+
+  <div class="warn">
+    <b>代价：</b>U2 的 1 / 7 / 9 三个脚不能再直接压地平面，功率地要单独走一条线回到 R41，
+    再单点接主地。三个脚<b>必须全接</b>，漏一个电流会分流，读数偏小。
   </div>
 </section>
 
@@ -134,13 +130,13 @@ footer{padding-top:40px;font-size:12.5px;color:var(--ink-light);display:flex;jus
                 │
              J2.2
                 │
-          Q2.D (3)                    ┌──── U8 INA181A2 ────┐
+          Q2.D (3)                    ┌──── U8 INA180A3 ────┐
                 │                     │                     │
-          Q2.S (2) ──┬────────────────┤ 3  IN+      6  VS ──┼── +3V3
+          Q2.S (2) ──┬────────────────┤ 1  IN+      5  VS ──┼── +3V3
                      │                │                     │
-                [R42 10mΩ]            │ 4  IN−      2  GND ─┼── GND
+                [R42 10mΩ]            │ 3  IN−      2  GND ─┼── GND
                      │                │                     │
-                    GND               │ 1  REF     5  OUT ──┼──┬─ PA5
+                    GND               │ 4  OUT ─────────────┼──┬─ PA5
                                       └─────────────────────┘  │
                                                                │
     PB0 ──[Rg 100Ω]── Q2.G (1)                             [1kΩ]
@@ -152,18 +148,17 @@ footer{padding-top:40px;font-size:12.5px;color:var(--ink-light);display:flex;jus
   <table>
     <thead><tr><th style="width:16%">引脚</th><th style="width:20%">名称</th><th>接到</th></tr></thead>
     <tbody>
-      <tr><td class="mono">1</td><td>REF</td><td>1.65V（与电机那路共用）</td></tr>
+      <tr><td class="mono">1</td><td><b>IN+</b></td><td>R42 的 <b>MOS 源极侧</b></td></tr>
       <tr><td class="mono">2</td><td>GND</td><td>GND</td></tr>
-      <tr><td class="mono">3</td><td>IN+</td><td>R42 的 <b>MOS 源极侧</b></td></tr>
-      <tr><td class="mono">4</td><td>IN−</td><td>R42 的 <b>GND 侧</b></td></tr>
-      <tr><td class="mono">5</td><td>OUT</td><td>→ 1kΩ → PA5（并 100nF）</td></tr>
-      <tr><td class="mono">6</td><td>VS</td><td>+3V3</td></tr>
+      <tr><td class="mono">3</td><td><b>IN−</b></td><td>R42 的 <b>GND 侧</b></td></tr>
+      <tr><td class="mono">4</td><td>OUT</td><td>→ 1kΩ → PA5（并 100nF）</td></tr>
+      <tr><td class="mono">5</td><td>VS</td><td>+3V3</td></tr>
     </tbody>
   </table>
 
   <div class="ok">
     <b>加热为什么用低边：</b>MOS 源极本来就接地，串个电阻只把这一点抬高 10mV，
-    对整个地平面没有任何影响，也不涉及地分割。而共模接近 0V，INA181 工作最舒服。
+    对整个地平面没有任何影响，也不涉及地分割。而共模接近 0V，INA180 工作最舒服。
   </div>
 </section>
 
@@ -247,7 +242,7 @@ T(°C) = 1/(1/298.15 + ln(R_ntc/10000)/3950) − 273.15</pre>
   <table>
     <thead><tr><th style="width:12%">位号</th><th style="width:30%">器件</th><th style="width:16%">封装</th><th style="width:8%">数量</th><th>备注</th></tr></thead>
     <tbody>
-      <tr><td class="mono">U7 / U8</td><td><b>INA181A2</b>（双向，×50）</td><td>SOT-23-6</td><td>2</td><td>电机 / 加热电流</td></tr>
+      <tr><td class="mono">U7 / U8</td><td><b>INA180A3</b>（单向，×100）</td><td>SOT-23-5</td><td>2</td><td>电机 / 加热电流</td></tr>
       <tr><td class="mono">U9</td><td><b>MCP6002</b> 轨到轨运放</td><td>SOP-8</td><td>1</td><td>电机电压差分</td></tr>
       <tr><td class="mono">Q2</td><td>AO3400（N-MOS）</td><td>SOT-23</td><td>1</td><td>加热开关</td></tr>
       <tr><td class="mono">R41 / R42</td><td>10mΩ ±1% 1W</td><td>1206</td><td>2</td><td>采样电阻（合金）</td></tr>
@@ -271,9 +266,9 @@ T(°C) = 1/(1/298.15 + ln(R_ntc/10000)/3950) − 273.15</pre>
   <table>
     <thead><tr><th style="width:22%">项目</th><th style="width:26%">值</th><th>说明</th></tr></thead>
     <tbody>
-      <tr><td>电流增益</td><td>50（INA181A2）</td><td>10mΩ × 1A × 50 = 0.5V</td></tr>
-      <tr><td>电流量程</td><td>±3.3 A</td><td>输出 1.65 ± 1.65V</td></tr>
-      <tr><td>电流分辨率</td><td>≈ 1.6 mA</td><td>0.8mV / 50 / 0.01</td></tr>
+      <tr><td>电流增益</td><td>100（INA180A3）</td><td>10mΩ × 1A × 100 = 1V</td></tr>
+      <tr><td>电流量程</td><td>0~1.5 A</td><td>输出 0~1.5V，受 R3 限流约束</td></tr>
+      <tr><td>电流分辨率</td><td>≈ 0.8 mA</td><td>0.8mV / 100 / 0.01</td></tr>
       <tr><td>1.65V 精度</td><td>取决于 10k 电阻</td><td>1% 电阻 → ±1.6%</td></tr>
       <tr><td>电压增益</td><td>0.13</td><td>±12V → 0~3.3V</td></tr>
       <tr><td>加热 PWM</td><td>1 kHz</td><td>TIM3_CH3，PB0</td></tr>
@@ -281,55 +276,47 @@ T(°C) = 1/(1/298.15 + ln(R_ntc/10000)/3950) − 273.15</pre>
   </table>
 
   <div class="note">
-    <b>1.65V 三个地方共用：</b>电机电压偏置（R49）、电机电流 REF、加热电流 REF。
-    只要这一处准，三个通道的零点就都准。建议用 <b>1% 电阻</b>，或者用 TL431 产生更稳的基准。
+    <b>1.65V 只给电机电压偏置用：</b>R49 一端接 V_REF_1V65 顶到差分放大器的同相端。
+    两路电流采样是单向输出，不需要任何偏置。建议用 <b>1% 电阻</b>，C32 就近滤波。
   </div>
 </section>
 
 <section>
-  <h2><span class="n">09</span>低边方案（改地）· 备选电路</h2>
-  <p class="lead">采样点放在 DRV8871 的接地脚，需要断开原有接地并串入电阻。仅供对比参考。</p>
+  <h2><span class="n">09</span>附：原 OUT 侧方案<span class="tag-old">未采用</span></h2>
+  <p class="lead">采样电阻串在 OUT1 与电机之间，不改动 DRV8871 的接地方式。留档备查，实物未采用。</p>
 
-<pre>                        ┌──────── U7 INA180A3 ────────┐
-                        │ 5  VS ── +3V3              │
-                        │ 2  GND ── GND              │
-                        │                             │
-      U2.GND (1/7/9) ───┤ 3  IN+                      │
-            │           │                             │
-       [R41 10mΩ]       │ 4  IN− ── GND              │
-            │           │                             │
-           GND          │ 1  OUT ──┬── PA3            │
-                        └──────────┼─────────────────┘
-                                   │
-                              [1kΩ]│
-                                   ├──[100nF]── GND</pre>
+<pre>                    ┌─────────── U7 INA181A2 ──────────┐
+                    │                                    │
+    U2.OUT1 ──┬─────┤ 3  IN+                    6  VS ───┼──── +3V3
+              │     │                                    │
+         [R41 10mΩ] │ 4  IN−                    2  GND ──┼──── GND
+              │     │                                    │
+              │     │ 1  REF ── 1.65V          5  OUT ──┼──┬─ PA3
+              │     │                                    │  │
+              │     └─────────────────────────────┘  │
+              │                                              │
+    MOTOR+ ───┴───────────────────────         [1kΩ]
+                                                             │
+                                                        ┌────┴────┐
+                                                        │ 100nF   │
+                                                        └────┬────┘
+                                                            GND</pre>
 
-  <h3>INA180A3 引脚（单向）</h3>
   <table>
-    <thead><tr><th style="width:12%">脚</th><th style="width:20%">名称</th><th>接到</th></tr></thead>
+    <thead><tr><th style="width:16%">引脚</th><th style="width:20%">名称</th><th>接到</th></tr></thead>
     <tbody>
-      <tr><td class="mono">1</td><td>OUT</td><td>→ 1kΩ → PA3</td></tr>
+      <tr><td class="mono">1</td><td>REF</td><td><b>1.65V</b>（双向输出中点）</td></tr>
       <tr><td class="mono">2</td><td>GND</td><td>GND</td></tr>
-      <tr><td class="mono">3</td><td>IN+</td><td>R41 的 <b>U2 GND 侧</b></td></tr>
-      <tr><td class="mono">4</td><td>IN−</td><td>R41 的 <b>GND 侧</b></td></tr>
-      <tr><td class="mono">5</td><td>VS</td><td>+3V3</td></tr>
+      <tr><td class="mono">3</td><td><b>IN+</b></td><td>R41 的 <b>OUT1 侧</b></td></tr>
+      <tr><td class="mono">4</td><td><b>IN−</b></td><td>R41 的 <b>电机侧</b></td></tr>
+      <tr><td class="mono">5</td><td>OUT</td><td>→ 1kΩ → PA3（并 100nF 到地）</td></tr>
+      <tr><td class="mono">6</td><td>VS</td><td>+3V3</td></tr>
     </tbody>
   </table>
 
-  <p><b>注意：INA180 没有 REF 引脚</b>，是单向输出（0~VS）。不需要 1.65V 偏置。</p>
-
-  <h3>改动步骤</h3>
-  <ul class="check" style="list-style:none;margin:10px 0">
-    <li style="position:relative;padding-left:26px;margin-bottom:8px;color:#6E6559;font-size:14px"><span style="position:absolute;left:0;color:#B5713F">□</span>断开 U2 的 1 / 7 / 9 脚与 GND 的所有连接</li>
-    <li style="position:relative;padding-left:26px;margin-bottom:8px;color:#6E6559;font-size:14px"><span style="position:absolute;left:0;color:#B5713F">□</span>这三个脚全部接到 R41 高端（<b>必须三个都接</b>，少一个会导致电流分流、读数偏小）</li>
-    <li style="position:relative;padding-left:26px;margin-bottom:8px;color:#6E6559;font-size:14px"><span style="position:absolute;left:0;color:#B5713F">□</span>R41 另一端接 GND</li>
-    <li style="position:relative;padding-left:26px;margin-bottom:8px;color:#6E6559;font-size:14px"><span style="position:absolute;left:0;color:#B5713F">□</span>U7 的 3 脚接 R41 高端，4 脚接 R41 低端</li>
-  </ul>
-
-  <div class="warn">
-    <b>PCB 影响：</b>DRV8871 的三个接地脚不再直接压在地平面上，
-    整个功率地要重新规划。<b>地平面会被"切开"</b>，
-    处理不好会导致加热一开 ADC 就跳、电机一转串口就乱。
+  <div class="note">
+    <b>换算：</b><span class="mono">I = (Vout − 1.65) / 50 / 0.01</span>，结果带正负号。<br>
+    优点是地平面完整、测到的是纯电机电流；缺点是共模电压随 PWM 在 0~12V 跳变，ADC 抖动 3~5%。
   </div>
 </section>
 
@@ -362,14 +349,13 @@ T(°C) = 1/(1/298.15 + ln(R_ntc/10000)/3950) − 273.15</pre>
   <h2><span class="n">11</span>选择建议</h2>
 
   <div class="ok">
-    <b>教学用途（精度 1~2% 可接受）→ 选 OUT 侧。</b><br>
-    不动地，PCB 干净，原理图改动小。抖动可以用软件平均压到 1~2%。
+    <b>实际选择：低边对地（02 节）。</b><br>
+    共模 0V，读数最稳，教学演示电流波形干净。代价是功率地要重新走一条回到 R41 的线。
   </div>
 
   <div class="note">
-    <b>如果要更干净的电流波形（比如演示电流环效果）→ 选低边。</b><br>
-    共模 0V，读数稳定。代价是 PCB 的功率地要重做，
-    而且 DRV8871 到地平面之间多了一段走线，需要仔细处理。
+    <b>如果哪天想避开改地的麻烦 → 回到 OUT 侧（09 节）。</b><br>
+    地平面完整、原理图改动小，但 ADC 抖动 3~5%，要靠软件平均压下去。
   </div>
 
   <h3>折中方案</h3>
@@ -379,7 +365,7 @@ T(°C) = 1/(1/298.15 + ln(R_ntc/10000)/3950) − 273.15</pre>
   <table>
     <thead><tr><th style="width:24%">场景</th><th style="width:26%">推荐</th><th>理由</th></tr></thead>
     <tbody>
-      <tr><td>教学演示</td><td><b>OUT 侧 + INA181</b></td><td>便宜、不改地、够用</td></tr>
+      <tr><td>教学演示</td><td><b>低边 + INA180</b>（已采用）</td><td>读数最稳，代价是功率地要重走</td></tr>
       <tr><td>要做电流环</td><td>OUT 侧 + <b>INA240</b></td><td>换一颗芯片就够，不动 PCB 拓扑</td></tr>
       <tr><td>追求最优精度</td><td>低边 + INA180</td><td>共模最干净，但 PCB 麻烦</td></tr>
     </tbody>
@@ -387,8 +373,8 @@ T(°C) = 1/(1/298.15 + ln(R_ntc/10000)/3950) − 273.15</pre>
 </section>
 
 <footer>
-  <span>参考原理图 · OUT 侧采样 · 2026-11-05</span>
-  <span>INA181A2 · MCP6002 · AO3400</span>
+  <span>参考原理图 · 当前方案（低边对地）· 2026-11-05</span>
+  <span>INA180A3 · MCP6002 · AO3400</span>
 </footer>
 
 </div>
