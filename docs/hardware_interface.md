@@ -27,7 +27,7 @@
 | 15 | PA5 | I_HEAT_ADC | U7.1 | 加热电流 ADC | ADC1_IN5，INA180 输出 |
 | 16 | PA6 | IN1 | U2.3 | 电机 PWM 1 | TIM3_CH1 或 GPIO 方向控制 |
 | 17 | PA7 | IN2 | U2.2 | 电机 PWM 2 | TIM3_CH2 或 GPIO 方向控制 |
-| 18 | PB0 | HEAT_PWM | R49.1 | 加热 PWM | TIM3_CH3，1kHz |
+| 18 | PB0 | HEAT_PWM | R49.1 | 加热 PWM | TIM3_CH3，20kHz |
 | 19 | PB1 | V_HEAT_ADC | R43.2, C34.2 | 加热电压 ADC | ADC1_IN9，分压 33k/11k |
 | 20 | PB2 | BOOT1 | R5.2 | BOOT1 | 启动模式选择，10k 下拉 |
 | 21 | PB10 | — | — | 未使用 | — |
@@ -77,7 +77,7 @@
 |---|---|---|---|
 | PA0 / PA1 | ENCODER_A / ENCODER_B | TIM2（Encoder 模式） | 编码器测速，四倍频 |
 | PA6 / PA7 | IN1 / IN2 | GPIO 推挽输出 | DRV8871 方向控制（IN1/IN2 组合决定正反转/刹车） |
-| PB0 | HEAT_PWM | TIM3_CH3（1 kHz） | 加热 MOS 开关，占空比控制功率 |
+| PB0 | HEAT_PWM | TIM3_CH3（20 kHz） | 加热 MOS 开关，占空比控制功率 |
 | PA9 / PA10 | RXD / TXD | USART1 | 与上位机通信 |
 | PB6 / PB7 | I2C1_SCL / I2C1_SDA | I2C1 | OLED 显示 |
 
@@ -218,7 +218,7 @@ ADC1        : 连续扫描 4 通道（IN2/IN3/IN5/IN9），12 位
 TIM2        : Encoder Mode，CH1=PA0 / CH2=PA1，四倍频计数
 
 TIM3        : CH3 = PB0，PWM Generation
-              预分频 71 → 1MHz 计数，ARR=999 → 1kHz
+              预分频 0 → 72MHz 计数，ARR=3599 → 20kHz
 
 USART1      : 115200 8N1，PA9=TX / PA10=RX
 I2C1        : 400kHz 快速模式，PB6=SCL / PB7=SDA
@@ -238,7 +238,7 @@ PA6 / PA7   : GPIO_Output 推挽，DRV8871 方向控制
 **2. 加热电压的符号**
 
 - `V_heat = 12 − V_drain`，占空比越大 V_heat 越大
-- PWM 频率 1kHz，RC 时间常数 10ms，滤波后是平滑直流
+- PWM 频率 20kHz（50us 周期），RC 时间常数 10ms 是其 200 倍，滤波后是平滑直流
 
 **3. 电机电路**
 

@@ -222,7 +222,7 @@ PWM 关断 → 漏极 ≈ 12V
 平均电压 = 12 × (1 − D)
 加热棒两端电压 = 12 − 平均 = 12 × D</pre>
 
-  <p>RC 滤波时间常数取 <b>10ms</b>（10kΩ + 1μF），远大于 1kHz PWM 的 1ms 周期，滤波后是平滑直流。</p>
+  <p>RC 滤波时间常数取 <b>10ms</b>（10kΩ + 1μF），远大于 20kHz PWM 的 50μs 周期（200 倍），滤波后是平滑直流。选 20kHz 是为了同时满足电机 PWM 需求——超出人耳听觉，电机不会有啸叫。</p>
 
   <table>
     <thead><tr><th style="width:24%">元件</th><th style="width:26%">选型</th><th>依据</th></tr></thead>
@@ -277,7 +277,7 @@ T(°C) = 1 / (1/298.15 + ln(R_ntc/10000) / 3950) − 273.15</pre>
     <tbody>
       <tr><td class="mono">PA0 / PA1</td><td>编码器 A/B</td><td>TIM2 Encoder</td></tr>
       <tr><td class="mono">PA6 / PA7</td><td>电机 PWM</td><td>TIM3_CH1 / CH2</td></tr>
-      <tr><td class="mono">PB0</td><td>加热 PWM</td><td>TIM3_CH3（1kHz）</td></tr>
+      <tr><td class="mono">PB0</td><td>加热 PWM</td><td>TIM3_CH3（20kHz）</td></tr>
       <tr><td class="mono">PA9 / PA10</td><td>串口</td><td>USART1</td></tr>
       <tr><td class="mono">PB6 / PB7</td><td>I2C</td><td>I2C1</td></tr>
     </tbody>
