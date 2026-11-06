@@ -43,6 +43,58 @@
 
 **注意**：不要在远程/沙箱环境跑全量编译，慢且容易误判。本地 VSCode 几分钟就好。
 
+### 2.1 构建与烧录（统一方案）
+
+**不再为每个项目单独写 task。** 通用逻辑放在用户目录，项目里只引用。
+
+```
+%USERPROFILE%\.stm32\
+├── stm32.ps1          主脚本：build / flash / clean / rebuild / config
+└── init-project.ps1   给新项目生成 .vscode
+```
+
+**项目里的 `.vscode/tasks.json` 只有五个任务，内容完全一样，不写任何设备型号或工具路径**：
+
+| 任务 | 快捷键 / 触发 | 说明 |
+|---|---|---|
+| 编译 | `Ctrl+Shift+B` | 增量编译，输出到 `build/Debug/` |
+| 烧录 | 任务面板 | 编译 + 下载 |
+| 清理 | 任务面板 | 删除 `build/Debug/` |
+| 重新编译 | 任务面板 | clean + configure + build |
+| 编译并烧录 | 任务面板 | 前两者串行 |
+
+**脚本自动处理的三件事**：
+
+1. **找最新版工具链**。ST 扩展装在版本号目录里（`stm32cube-ide-build-cmake-1.47.0-win32-x64`），扩展一更新路径就变。脚本遍历取版本号最大的那个。
+2. **烧录器自动降级**。优先 ST-LINK（`STM32_Programmer_CLI`），连不上自动切 J-Link；也可用 `-Flasher jlink|stlink` 强制指定。
+3. **MCU 型号从 `.ioc` 读**。抓 `Mcu.CPN=STM32F103C8T6`，J-Link 需要的基础型号（`STM32F103C8`）由脚本自动裁剪，不用手填。
+
+**新项目初始化**：
+
+```powershell
+cd E:\code_source\new_project
+& "$env:USERPROFILE\.stm32\init-project.ps1"
+```
+
+生成 `tasks.json` + `settings.json`，并顺手把 `build/` 加进 `.gitignore`。已有文件不会覆盖，除非加 `-Force`。
+
+**直接命令行调用**（不经过 VSCode）：
+
+```powershell
+# 在项目根目录
+& "$env:USERPROFILE\.stm32\stm32.ps1" build
+& "$env:USERPROFILE\.stm32\stm32.ps1" flash -Preset Release
+& "$env:USERPROFILE\.stm32\stm32.ps1" clean
+```
+
+**踩坑提醒**：这两个 `.ps1` 必须存为 **UTF-8 with BOM**。PowerShell 5.1 读无 BOM 的 UTF-8 会按 GBK 解码，中文全变乱码，严重时解析直接报语法错误。`init-project.ps1` 里有中文任务名，尤其要注意。改完文件用这条命令补 BOM：
+
+```powershell
+$f = "$env:USERPROFILE\.stm32\init-project.ps1"
+$s = [System.IO.File]::ReadAllText($f, (New-Object System.Text.UTF8Encoding($false)))
+[System.IO.File]::WriteAllText($f, $s, (New-Object System.Text.UTF8Encoding($true)))
+```
+
 ---
 
 ## 3. 代码结构
