@@ -51,8 +51,8 @@
 | 39 | PB3 | — | — | 未使用 | — |
 | 40 | PB4 | — | — | 未使用 | — |
 | 41 | PB5 | — | — | 未使用 | — |
-| 42 | PB6 | I2C1_SCL | H5.3 | I2C SCL | I2C1_SCL，OLED 时钟 |
-| 43 | PB7 | I2C1_SDA | H5.4 | I2C SDA | I2C1_SDA，OLED 数据 |
+| 42 | PB6 | I2C1_SCL | H5.3 | I2C SCL | I2C1_SCL，磁编码器时钟 |
+| 43 | PB7 | I2C1_SDA | H5.4 | I2C SDA | I2C1_SDA，磁编码器数据 |
 | 44 | BOOT0 | BOOT0 | R4.1 | 启动模式 | 10k 下拉到 GND = 从 Flash 启动 |
 | 45 | PB8 | — | — | 未使用 | — |
 | 46 | PB9 | — | — | 未使用 | — |
@@ -79,7 +79,7 @@
 | PA6 / PA7 | IN1 / IN2 | GPIO 推挽输出 | DRV8871 方向控制（IN1/IN2 组合决定正反转/刹车） |
 | PB0 | HEAT_PWM | TIM3_CH3（20 kHz） | 加热 MOS 开关，占空比控制功率 |
 | PA9 / PA10 | RXD / TXD | USART1 | 与上位机通信 |
-| PB6 / PB7 | I2C1_SCL / I2C1_SDA | I2C1 | OLED 显示 |
+| PB6 / PB7 | I2C1_SCL / I2C1_SDA | I2C1（400kHz） | AS5600 磁编码器 |
 
 **DRV8871 真值表**：
 
@@ -160,14 +160,14 @@ B 通道（U9.5/6/7）做电压跟随器，把 R46/R47 分压点（5kΩ 源阻�
 | 5 | ENCODER_A | 编码器 A 相 |
 | 6 | ENCODER_B | 编码器 B 相 |
 
-### H5 — OLED 接口（4P 2.54 排针）
+### H5 — 磁编码器接口（4P 2.54 排针）
 
 | 脚 | 网络 | 说明 |
 |---|---|---|
 | 1 | 3V3 | |
 | 2 | GND | |
-| 3 | I2C1_SCL | I2C 时钟 |
-| 4 | I2C1_SDA | I2C 数据 |
+| 3 | I2C1_SCL | AS5600 时钟 |
+| 4 | I2C1_SDA | AS5600 数据 |
 
 ### P5 — 加热棒接口（2P 2.54 排针）
 
