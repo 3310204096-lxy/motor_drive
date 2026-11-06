@@ -1,9 +1,15 @@
 {
-    "cmake.cmakePath": "cube-cmake",
-    "cmake.configureArgs": [
-        "-DCMAKE_COMMAND=cube-cmake"
-    ],
-    "cmake.preferredGenerators": [
-        "Ninja"
-    ]
+    "files.associations": {
+        "*.h": "c",
+        "*.ioc": "ini"
+    },
+    "search.exclude": {
+        "build/**": true,
+        "Drivers/**": true,
+        "Middlewares/**": true
+    },
+    "files.watcherExclude": {
+        "**/build/**": true
+    },
+    "C_Cpp.intelliSenseEngineFallback": "enabled"
 }
